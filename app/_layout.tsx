@@ -9,7 +9,6 @@ import "../global.css"
 
 import { ClerkProvider } from '@clerk/clerk-expo'
 import { tokenCache } from '@clerk/clerk-expo/token-cache'
-import { Slot } from 'expo-router'
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -40,7 +39,15 @@ function RootLayoutNav() {
   
   return (
     <ClerkProvider tokenCache={tokenCache}>
-        <Slot />
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <Stack>
+          <Stack.Screen name="(home)" options={{ headerShown: false }} />
+          <Stack.Screen name="(profile)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
+        </Stack>
+      </ThemeProvider>
     </ClerkProvider>
   );
 }
