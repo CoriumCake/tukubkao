@@ -15,7 +15,9 @@ export default function Page() {
           <Link href="/(profile)/profile">
             <Text>Profile</Text>
           </Link>
-
+            <Link href="/(inventory)/inventory">
+                       <Text>Inventory</Text>
+                     </Link>
         </View>
 
       </SignedIn>
