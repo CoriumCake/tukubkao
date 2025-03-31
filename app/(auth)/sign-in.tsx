@@ -26,6 +26,7 @@ export default function Page() {
   const { startSSOFlow } = useSSO()
 
   const { signIn, setActive, isLoaded } = useSignIn()
+  
   const router = useRouter()
 
   const [emailAddress, setEmailAddress] = React.useState('')

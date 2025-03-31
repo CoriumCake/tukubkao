@@ -11,6 +11,13 @@ export default function Page() {
       <SignedIn>
         <Text>Hello {user?.emailAddresses[0].emailAddress}</Text>
         <SignOutButton />
+        <View>
+          <Link href="/(profile)/profile">
+            <Text>Profile</Text>
+          </Link>
+
+        </View>
+
       </SignedIn>
       <SignedOut>
         <Link href="/(auth)/sign-in">
