@@ -1,50 +1,102 @@
-# Welcome to your Expo app 👋
+# Tukubkao - Recipe Suggestion App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile application that suggests recipes based on ingredients you have. Built with Expo and React Native, with a Node.js backend that uses Ollama for AI-powered recipe suggestions.
 
-## Get started
+## Features
 
-1. Install dependencies
+- Input ingredients and get recipe suggestions
+- Authentication with Clerk
+- Light and dark mode support
+- Cross-platform (iOS, Android, Web)
+- Powered by Llama 3.3 AI model via Ollama
 
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (v16 or newer)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- [Ollama](https://ollama.ai/) - for running the AI model locally
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/tukubkao.git
+   cd tukubkao
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Set up Ollama:
+   - Install Ollama from [ollama.ai](https://ollama.ai/)
+   - Pull the Llama 3.3 model:
+     ```bash
+     ollama pull llama3.3:latest
+     ```
 
-   ```bash
-    npx expo start
-   ```
+4. Set up Clerk authentication:
+   - Create an account at [clerk.dev](https://clerk.dev)
+   - Set up your application and get your API keys
+   - Create a `.env` file in the project root with your Clerk keys
 
-In the output, you'll find options to open the app in a
+## Running the Application
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 1. Start the Ollama server
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Make sure Ollama is running in the background. By default, it should be available at http://localhost:11434.
 
-## Get a fresh project
-
-When you're ready, run:
+### 2. Start the backend server
 
 ```bash
-npm run reset-project
+cd backend
+node server.js
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+This will start the Express server on port 3000.
 
-## Learn more
+### 3. Start the Expo app
 
-To learn more about developing your project with Expo, look at the following resources:
+In a new terminal window, from the project root:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run start
+```
 
-## Join the community
+This will start the Expo development server and provide options to run the app on:
+- iOS simulator (press `i`)
+- Android emulator (press `a`)
+- Web browser (press `w`)
+- Physical device using Expo Go app (scan QR code)
 
-Join our community of developers creating universal apps.
+## How to Use
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. Sign in or create an account
+2. Enter ingredients you have in your kitchen
+3. Get AI-generated recipe suggestions based on your ingredients
+4. Explore the suggested recipes
+
+## Project Structure
+
+- `/app` - Main application code using Expo Router for navigation
+- `/backend` - Express server that communicates with Ollama
+- `/components` - Reusable React components
+- `/hooks` - Custom React hooks
+- `/constants` - Application constants and theme settings
+
+## Development
+
+This project uses:
+- [Expo Router](https://docs.expo.dev/router/introduction/) for file-based routing
+- [NativeWind](https://www.nativewind.dev/) for styling with Tailwind CSS
+- [Clerk](https://clerk.dev/) for authentication
+- [Ollama](https://ollama.ai/) for local AI model hosting
+
+## License
+
+[MIT License](LICENSE)
+
