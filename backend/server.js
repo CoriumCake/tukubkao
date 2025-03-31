@@ -20,7 +20,7 @@ app.post("/chat", async (req, res) => {
 
     try {
         const ollamaResponse = await axios.post("http://localhost:11434/api/generate", {
-            model: "llama3.3:latest",
+            model: "gemma3:27b",
             prompt: refinedPrompt, // Use the refined prompt here
             stream: true,
         }, {
