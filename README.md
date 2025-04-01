@@ -8,7 +8,6 @@ A mobile application that suggests recipes based on ingredients you have. Built 
 - Authentication with Clerk
 - Light and dark mode support
 - Cross-platform (iOS, Android, Web)
-- Powered by Llama 3.3 AI model via Ollama
 
 ## Prerequisites
 
@@ -17,7 +16,6 @@ Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (v16 or newer)
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 - [Expo CLI](https://docs.expo.dev/get-started/installation/)
-- [Ollama](https://ollama.ai/) - for running the AI model locally
 
 ## Installation
 
@@ -32,34 +30,14 @@ Before you begin, ensure you have the following installed:
    npm install
    ```
 
-3. Set up Ollama:
-   - Install Ollama from [ollama.ai](https://ollama.ai/)
-   - Pull the Llama 3.3 model:
-     ```bash
-     ollama pull llama3.3:latest
-     ```
-
-4. Set up Clerk authentication:
+3. Set up Clerk authentication:
    - Create an account at [clerk.dev](https://clerk.dev)
    - Set up your application and get your API keys
    - Create a `.env` file in the project root with your Clerk keys
 
 ## Running the Application
 
-### 1. Start the Ollama server
-
-Make sure Ollama is running in the background. By default, it should be available at http://localhost:11434.
-
-### 2. Start the backend server
-
-```bash
-cd backend
-node server.js
-```
-
-This will start the Express server on port 3000.
-
-### 3. Start the Expo app
+### Start the Expo app
 
 In a new terminal window, from the project root:
 
