@@ -11,12 +11,6 @@ export default function AddItem() {
   const [quantity, setQuantity] = useState('');
   const [category, setCategory] = useState('');
 
-  const handleSubmit = async () => {
-    // TODO: Implement the actual submission logic
-    // For now, just navigate back to inventory
-    router.replace('/(inventory)/inventory');
-  };
-
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.title}>Add New Item</ThemedText>
@@ -69,11 +63,11 @@ export default function AddItem() {
           />
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <TouchableOpacity style={styles.button} >
           <Text style={styles.buttonText}>Add Item</Text>
         </TouchableOpacity>
 
-        <Link href="/(inventory)/inventory" asChild>
+        <Link href="/(tabs)/(home)" asChild>
           <TouchableOpacity style={styles.cancelButton}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
