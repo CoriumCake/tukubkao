@@ -8,5 +8,9 @@ export default function ProfileRoutesLayout() {
     return <Redirect href={'/(auth)/sign-in'} />
   }
 
-  return <Stack />
+  return (
+    <Stack>
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
+    </Stack>
+  )
 }
