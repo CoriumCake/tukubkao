@@ -7,12 +7,8 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import "../global.css"
 
-import { ClerkProvider } from '@clerk/clerk-expo'
-import { tokenCache } from '@clerk/clerk-expo/token-cache'
-
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -34,11 +30,11 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   
   return (
-    <ClerkProvider tokenCache={tokenCache}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Stack>
@@ -47,6 +43,5 @@ function RootLayoutNav() {
           <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
         </Stack>
       </ThemeProvider>
-    </ClerkProvider>
   );
 }

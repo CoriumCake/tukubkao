@@ -29,8 +29,12 @@
   "dependencies": {
     "@clerk/clerk-expo": "^2.9.6",
     "@expo/vector-icons": "^14.0.2",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
+    "@rneui/base": "^4.0.0-rc.7",
+    "@rneui/themed": "^4.0.0-rc.8",
+    "@supabase/supabase-js": "^2.49.4",
     "axios": "^1.8.4",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
@@ -77,4 +81,4 @@
     "typescript": "^5.3.3"
   },
   "private": true
-        }
+}
