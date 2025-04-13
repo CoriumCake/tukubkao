@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { Button, Input } from '@rneui/themed'
 import { router } from 'expo-router'
 import TextButton from './TextButton/TextButton'
+import PrimaryButton from './PrimaryButton/PrimaryButton'
 export default function Auth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -59,8 +60,10 @@ export default function Auth() {
           autoCapitalize={'none'}
         />
       </View>
+
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button title="Log In" disabled={loading} onPress={() => signInWithEmail()} />
+      <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
+
       </View>
       <View style={styles.verticallySpaced}>
         <TextButton text="Forgot Password?" onClick={("")} disabled={loading} />
