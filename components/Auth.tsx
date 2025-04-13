@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { Alert, StyleSheet, View } from 'react-native'
+import { Alert, StyleSheet, View, TouchableOpacity, Text } from 'react-native'
 import { supabase } from '../lib/supabase'
 import { Button, Input } from '@rneui/themed'
 import { router } from 'expo-router'
-
+import TextButton from './TextButton/TextButton'
 export default function Auth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -60,10 +60,11 @@ export default function Auth() {
         />
       </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button title="Sign in" disabled={loading} onPress={() => signInWithEmail()} />
+        <Button title="Log In" disabled={loading} onPress={() => signInWithEmail()} />
       </View>
       <View style={styles.verticallySpaced}>
-        <Button title="Sign up" disabled={loading} onPress={() => signUpWithEmail()} />
+        <TextButton text="Forgot Password?" onClick={("")} disabled={loading} />
+        <TextButton isBold={true} content= "Don't have an account?" text="SignUp" onClick={signUpWithEmail} disabled={loading} />
       </View>
     </View>
   )
@@ -82,4 +83,19 @@ const styles = StyleSheet.create({
   mt20: {
     marginTop: 20,
   },
+  signupRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+    gap: 5,
+  },
+  accountText: {
+    fontSize: 16,
+  },
+  signUpText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  }
 })
