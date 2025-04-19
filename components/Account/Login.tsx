@@ -23,21 +23,6 @@ export default function Login() {
     setLoading(false)
   }
 
-  async function signUpWithEmail() {
-    setLoading(true)
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    })
-
-    if (error) Alert.alert(error.message)
-    if (!session) Alert.alert('Please check your inbox for email verification!')
-    setLoading(false)
-  }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome</Text>
@@ -65,8 +50,7 @@ export default function Login() {
       </View>
 
       <View style={[styles.verticallySpaced, styles.mt20]}>
-      <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
-
+        <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
       </View>
       <View style={styles.verticallySpaced}>
         <TextButton content="" text="Forgot Password?" onClick={() => router.push('/(auth)/forgot')} disabled={loading} />
