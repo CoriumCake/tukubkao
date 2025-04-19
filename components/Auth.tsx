@@ -5,6 +5,7 @@ import { Button, Input } from '@rneui/themed'
 import { router } from 'expo-router'
 import TextButton from './TextButton/TextButton'
 import PrimaryButton from './PrimaryButton/PrimaryButton'
+
 export default function Auth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,21 +20,6 @@ export default function Auth() {
 
     if (error) Alert.alert(error.message)
     else router.replace('/(tabs)/(home)')
-    setLoading(false)
-  }
-
-  async function signUpWithEmail() {
-    setLoading(true)
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    })
-
-    if (error) Alert.alert(error.message)
-    if (!session) Alert.alert('Please check your inbox for email verification!')
     setLoading(false)
   }
 
@@ -62,12 +48,11 @@ export default function Auth() {
       </View>
 
       <View style={[styles.verticallySpaced, styles.mt20]}>
-      <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
-
+        <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
       </View>
       <View style={styles.verticallySpaced}>
-        <TextButton text="Forgot Password?" onClick={("")} disabled={loading} />
-        <TextButton isBold={true} content= "Don't have an account?" text="SignUp" onClick={signUpWithEmail} disabled={loading} />
+        <TextButton content="Forgot your password?" text="Reset" onClick={() => {}} disabled={loading} />
+        <TextButton content="Don't have an account?" text="Sign Up" onClick={() => router.push('/(auth)/signup')} disabled={loading} isBold={true} />
       </View>
     </View>
   )

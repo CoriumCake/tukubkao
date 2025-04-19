@@ -5,6 +5,7 @@ export default function AuthLayout() {
     <Stack>
       {/* Define screens within the auth group */}
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="signup" options={{ headerShown: false }} />
       {/* Add other auth screens here if needed, e.g., sign-up */}
     </Stack>
   );
