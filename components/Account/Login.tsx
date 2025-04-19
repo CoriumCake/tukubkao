@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { Alert, StyleSheet, View, TouchableOpacity, Text } from 'react-native'
-import { supabase } from '../lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { Button, Input } from '@rneui/themed'
 import { router } from 'expo-router'
-import TextButton from './TextButton/TextButton'
-import PrimaryButton from './PrimaryButton/PrimaryButton'
+import TextButton from '@/components/TextButton/TextButton'
+import PrimaryButton from '@/components/PrimaryButton/PrimaryButton'
 
-export default function Auth() {
+export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -25,6 +25,8 @@ export default function Auth() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Welcome</Text>
+      <Text style={styles.subtitle}>Log in to continue</Text>
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Input
           label="Email"
@@ -51,8 +53,8 @@ export default function Auth() {
         <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
       </View>
       <View style={styles.verticallySpaced}>
-        <TextButton content="Forgot your password?" text="Reset" onClick={() => {}} disabled={loading} />
-        <TextButton content="Don't have an account?" text="Sign Up" onClick={() => router.push('/(auth)/signup')} disabled={loading} isBold={true} />
+        <TextButton content="" text="Forgot Password?" onClick={() => router.push('/(auth)/forgot')} disabled={loading} />
+        <TextButton isBold={true} content= "Don't have an account?" text="SignUp" onClick={() => router.push('/(auth)/signup')} disabled={loading} />
       </View>
     </View>
   )
@@ -60,6 +62,8 @@ export default function Auth() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: '#F8F2E6',
     marginTop: 40,
     padding: 12,
   },
@@ -85,5 +89,18 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
+  title: {
+    fontSize: 36,   
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 100,
+    color: '#000000',
+  },
+  subtitle: {
+    fontSize: 20,   
+    textAlign: 'center',
+    marginTop: 0,
+    color: '#000000',
+  },
 })
