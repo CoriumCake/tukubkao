@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     buttonContainer: {
         backgroundColor: "#A5B68D",
         alignItems: 'center',
-        marginTop: 40,
+        marginTop: 0,
         padding: 12,
         width: '100%',
         borderRadius: 8,

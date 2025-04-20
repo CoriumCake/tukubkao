@@ -14,12 +14,15 @@ export const styles = StyleSheet.create({
     text: {
         color: '#000000',
         textAlign: 'center',
-        fontSize: 16,
+        fontSize: 20,
+        fontFamily: 'YsabeauOffice',
     },
     boldText: {
         fontWeight: 'bold',
+        fontFamily: 'YsabeauOffice',
     },
     contentText: {
-        fontSize: 16,
+        fontSize: 20,
+        fontFamily: 'YsabeauOffice',
     }
 });
