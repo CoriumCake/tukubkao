@@ -1,22 +1,15 @@
-import React, { useEffect, useState } from 'react'
-import { Alert, StyleSheet, View, Text } from 'react-native'
+import React, { useState } from 'react'
+import { Alert, StyleSheet, View, TouchableOpacity, Text } from 'react-native'
 import { supabase } from '@/lib/supabase'
+import { Button, Input } from '@rneui/themed'
 import { router } from 'expo-router'
 import TextButton from '@/components/TextButton/TextButton'
 import PrimaryButton from '@/components/PrimaryButton/PrimaryButton'
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
-} from '@react-native-google-signin/google-signin'
-import { Input } from '@rneui/themed'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | undefined>()
-  const [userInfo, setUserInfo] = useState<any>()
 
   async function signInWithEmail() {
     setLoading(true)
@@ -30,35 +23,10 @@ export default function Login() {
     setLoading(false)
   }
 
-  const configureGoogleSignIn = () => {
-    GoogleSignin.configure({
-      webClientId: "973460455176-7davn8p090bplcn4d17iohidfmnelb3o.apps.googleusercontent.com",
-      // androidClientId: "973460455176-g4blh130f8kl9r46ocnmkcjkgg1828an.apps.googleusercontent.com",
-      iosClientId: "973460455176-ntpvi36ac6sllvojas7ldgq93lepj96r.apps.googleusercontent.com",
-    })
-  }
-
-  useEffect(() => {
-    configureGoogleSignIn()
-  }, [])
-
-  const signInWithGoogle = async () => {
-    console.log("signInWithGoogle")
-
-    try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      setUserInfo(userInfo);
-    } catch (e: any) {
-      setError(e);
-    }
-  }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome</Text>
       <Text style={styles.subtitle}>Log in to continue</Text>
-
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Input
           label="Email"
@@ -69,7 +37,6 @@ export default function Login() {
           autoCapitalize={'none'}
         />
       </View>
-
       <View style={styles.verticallySpaced}>
         <Input
           label="Password"
@@ -82,41 +49,12 @@ export default function Login() {
         />
       </View>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
-
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
       </View>
-
-      <View style={styles.dividerContainer}>
-        <View style={styles.divider} />
-        <Text style={styles.dividerText}>OR</Text>
-        <View style={styles.divider} />
-      </View>
-
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <GoogleSigninButton
-          size={GoogleSigninButton.Size.Wide}
-          color={GoogleSigninButton.Color.Dark}
-          onPress={signInWithGoogle}
-          disabled={loading}
-        />
-      </View>
-
       <View style={styles.verticallySpaced}>
-        <TextButton
-          content=""
-          text="Forgot Password?"
-          onClick={() => router.push('/(auth)/forgot')}
-          disabled={loading}
-        />
-        <TextButton
-          isBold={true}
-          content="Don't have an account?"
-          text="SignUp"
-          onClick={() => router.push('/(auth)/signup')}
-          disabled={loading}
-        />
+        <TextButton content="" text="Forgot Password?" onClick={() => router.push('/(auth)/forgot')} disabled={loading} />
+        <TextButton isBold={true} content= "Don't have an account?" text="SignUp" onClick={() => router.push('/(auth)/signup')} disabled={loading} />
       </View>
     </View>
   )
@@ -137,37 +75,32 @@ const styles = StyleSheet.create({
   mt20: {
     marginTop: 20,
   },
+  signupRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+    gap: 5,
+  },
+  accountText: {
+    fontSize: 16,
+  },
+  signUpText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   title: {
-    fontSize: 36,
+    fontSize: 36,   
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 100,
     color: '#000000',
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 20,   
     textAlign: 'center',
     marginTop: 0,
     color: '#000000',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#CCCCCC',
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    color: '#666666',
-    fontSize: 14,
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginVertical: 10,
   },
 })
