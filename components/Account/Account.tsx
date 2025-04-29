@@ -9,7 +9,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 export default function Account() {
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
-  const [website, setWebsite] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   
   const [session, setSession] = useState<Session | null>(null)
@@ -47,7 +46,7 @@ export default function Account() {
 
       const { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, website, avatar_url`)
+        .select(`username, avatar_url`)
         .eq('id', session?.user.id)
         .single()
       if (error && status !== 406) {
@@ -56,7 +55,6 @@ export default function Account() {
 
       if (data) {
         setUsername(data.username)
-        setWebsite(data.website)
         setAvatarUrl(data.avatar_url)
       }
     } catch (error) {
@@ -70,11 +68,9 @@ export default function Account() {
 
   async function updateProfile({
     username,
-    website,
     avatar_url,
   }: {
     username: string
-    website: string
     avatar_url: string
   }) {
     try {
@@ -84,7 +80,6 @@ export default function Account() {
       const updates = {
         id: session?.user.id,
         username,
-        website,
         avatar_url,
         updated_at: new Date(),
       }
@@ -135,19 +130,11 @@ export default function Account() {
             leftIcon={{ type: 'font-awesome', name: 'user' }}
           />
         </View>
-        <View style={styles.verticallySpaced}>
-          <Input 
-            label="Website" 
-            value={website || ''} 
-            onChangeText={(text) => setWebsite(text)}
-            leftIcon={{ type: 'font-awesome', name: 'globe' }}
-          />
-        </View>
 
         <View style={[styles.verticallySpaced, styles.mt20]}>
           <Button
             title={loading ? 'Loading ...' : 'Update Profile'}
-            onPress={() => updateProfile({ username, website, avatar_url: avatarUrl })}
+            onPress={() => updateProfile({ username, avatar_url: avatarUrl })}
             disabled={loading}
             buttonStyle={styles.updateButton}
           />

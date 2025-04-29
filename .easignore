@@ -1,0 +1,60 @@
+# Standard ignores
+node_modules/
+.expo/
+dist/
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.log
+
+# EAS specific
+eas.json.local
+credentials.json
+*.keystore
+*.p8
+*.p12
+*.cert
+*.mobileprovision
+*.cer
+
+# Expo
+.expo-shared/
+.expo/
+web-build/
+.bundle
+.expo-sourcemaps/
+metro.config.local.js
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Testing
+coverage/
+*.junit
+*.xml
+*.tap
+*test-results*
+
+# Environment files
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Optional (if not using these)
+android/
+ios/
+web/
+docs/
+examples/
+*.md
+*.txt
