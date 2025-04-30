@@ -1,15 +1,13 @@
-import { Link, useRouter } from 'expo-router';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState } from 'react';
+import { View } from 'react-native';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import AddIngredientForm from '@/components/Inventory/add';
 
-export default function Page() {
+export default function AddIngredientScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1, padding: 16 }}>
-        <Text>Add Item Content</Text>
+      <AddIngredientForm />
       </View>
     </SafeAreaView>
   );
