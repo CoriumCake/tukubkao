@@ -1,73 +1,74 @@
-const express = require("express");
-const axios = require("axios");
+require('dotenv').config();
+const express = require('express');
+const { Deepseek } = require('node-deepseek');
+const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
+const port = 3000;
 
-// Middleware to parse JSON request body
+app.use(cors());
 app.use(express.json());
 
-app.post("/chat", async (req, res) => {
-    // Retrieve the prompt from the request body
-    const userPrompt = req.body.prompt;
+const apiKey = process.env.DEEPSEEK_API_KEY;
+if (!apiKey) {
+  console.error('Error: DEEPSEEK_API_KEY environment variable is not set');
+  process.exit(1);
+}
 
-    if (!userPrompt) {
-        return res.status(400).json({ error: "Please provide a prompt!" });
-    }
+const client = new Deepseek({
+  apiKey: apiKey
+});
 
-    // Refine the prompt to specify that only menu items should be returned
-    const refinedPrompt = `Given the ingredients: ${userPrompt}, what dishes can I cook? Please provide a simple list of dish names separated by commas, without any additional formatting, numbering, or punctuation.`;
-
+app.post('/api/recipes', async (req, res) => {
     try {
-        const ollamaResponse = await axios.post("http://localhost:11434/api/generate", {
-            model: "gemma3:27b",
-            prompt: refinedPrompt, // Use the refined prompt here
-            stream: true,
-        }, {
-            responseType: "stream",
-        });
-
-        let responseText = "";
-
-        ollamaResponse.data.on("data", (chunk) => {
-            const lines = chunk.toString().split("\n").filter(line => line.trim());
-
-            for (const line of lines) {
-                try {
-                    const json = JSON.parse(line);
-                    if (json.response) {
-                        responseText += json.response + " ";
-                    }
-                } catch (error) {
-                    console.error("Error parsing JSON:", error);
-                }
-            }
-        });
-
-        ollamaResponse.data.on("end", () => {
-            // Post-process the response to extract only the list of dishes
-            const dishes = responseText.trim()
-                .replace(/[0-9]+\.\s*/g, '') // Remove numbering (e.g., "1. ", "2. ")
-                .replace(/[\(\)\[\]{}\'\"]/g, '') // Remove parentheses and other punctuation
-                .replace(/[^a-zA-Z0-9,\s]/g, '') // Remove any non-alphanumeric characters except commas and spaces
-                .split(',')
-                .map(dish => dish.trim())
-                .filter(dish => dish.length > 0); // Filter out empty strings
-
-            res.json({ response: dishes });
-        });
-
-        ollamaResponse.data.on("error", (error) => {
-            console.error("Stream error:", error);
-            res.status(500).json({ error: "Failed to process stream from Ollama" });
-        });
-
+      const { ingredients } = req.body;
+      
+      if (!ingredients || !Array.isArray(ingredients)) {
+        return res.status(400).json({ error: 'Please provide an array of ingredients' });
+      }
+  
+      const ingredientsList = ingredients.join(', ');
+      
+      const response = await client.chat.createCompletion({
+        messages: [
+          {
+            role: 'system',
+            content: `You are a strict recipe analyzer. Only suggest dishes that can be made 
+                      with exactly the provided ingredients. Never add ingredients. 
+                      Format: comma-separated dish names, lowercase, no punctuation.`
+          },
+          {
+            role: 'user',
+            content: `Ingredients: ${ingredientsList}`
+          }
+        ],
+        model: 'deepseek-chat',
+        temperature: 0.3,
+        max_tokens: 150
+      });
+  
+      const recipes = response.choices[0].message.content
+        .split(',')
+        .map(recipe => recipe.trim().toLowerCase())
+        .filter(recipe => recipe.length > 0 && recipe !== 'no valid dishes found');
+  
+      res.json({ 
+        recipes: recipes.length > 0 
+          ? recipes 
+          : ['No dishes found with these ingredients'] 
+      });
+      
     } catch (error) {
-        console.error("Error fetching from Ollama:", error);
-        res.status(500).json({ error: "Failed to get response from Ollama" });
+      console.error('Error:', error);
+      res.status(500).json({ 
+        error: 'An error occurred while processing your request',
+        details: error.message 
+      });
     }
-});
+  });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
+  
