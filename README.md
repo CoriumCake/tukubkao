@@ -22,7 +22,7 @@ A cross-platform culinary assistant that transforms your ingredients into delici
 - Node.js 16+ & npm/yarn
 - Expo CLI (`npm install -g expo-cli`)
 - Supabase account (free tier works)
-- Deepseek API access (or Ollama local setup)
+- Deepseek API access
 
 ### Installation
 ```bash
@@ -91,7 +91,7 @@ tukubkao/
 
 **Backend**
 - Node.js + Express
-- Ollama/Deepseek integration
+- Deepseek integration
 - Supabase Client
 
 ## 🌱 Contributing
