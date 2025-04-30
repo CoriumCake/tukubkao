@@ -24,7 +24,13 @@
             ]
           }
         ],
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show you nearby places.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to show you nearby places.",
+        "UIBackgroundModes": ["location"]
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyD7jiKFEPqsMKvTEV0lVOnNj1Gcz1e-iRk"
       }
     },
     "android": {
@@ -32,6 +38,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyD7jiKFEPqsMKvTEV0lVOnNj1Gcz1e-iRk"
+        }
       }
     },
     "web": {
@@ -48,6 +59,12 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow tukubkao to use your location."
         }
       ]
     ],

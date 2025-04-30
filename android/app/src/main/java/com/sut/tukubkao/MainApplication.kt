@@ -1,4 +1,4 @@
-package com.anonymous.tukubkao
+package com.sut.tukubkao
 
 import android.app.Application
 import android.content.res.Configuration

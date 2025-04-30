@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import RNPickerSelect from 'react-native-picker-select';
 
@@ -16,21 +16,22 @@ const LOCATIONS = {
     latitude: 14.994651237067568,
     longitude: 102.09862303850923,
   },
-};
+} as const;
+
+type LocationKey = keyof typeof LOCATIONS;
 
 export default function MapsScreen() {
-  const [location, setLocation] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState('Makro 1');
-  const [customMarker, setCustomMarker] = useState(null); // เก็บตำแหน่งที่ผู้ใช้คลิก
-  const mapRef = useRef(null);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<LocationKey>('Makro 1');
+  const [customMarker, setCustomMarker] = useState<{ latitude: number; longitude: number } | null>(null);
+  const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
-    // ตั้งค่าตำแหน่งที่ต้องการเอง
     const predefinedLocation = {
       latitude: 14.980815253986936,
       longitude: 102.07641840766442,
     };
-    setLocation(predefinedLocation); // กำหนดตำแหน่งเอง
+    setLocation(predefinedLocation);
   }, []);
 
   const goToUserLocation = () => {
@@ -57,32 +58,29 @@ export default function MapsScreen() {
     }
   };
 
-  // ฟังก์ชันจับตำแหน่งเมื่อคลิกบนแผนที่
-  const handleMapPress = (e) => {
+  const handleMapPress = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
     const coordinate = e.nativeEvent.coordinate;
-    setCustomMarker(coordinate); // เก็บตำแหน่งที่กด
+    setCustomMarker(coordinate);
   };
 
-  // เปลี่ยนสถานที่ที่เลือกใน picker
-  const handleLocationChange = (value) => {
+  const handleLocationChange = (value: LocationKey) => {
     setSelectedLocation(value);
-    goToSelectedLocation(); // เลื่อนไปที่ตำแหน่งที่เลือก
+    goToSelectedLocation();
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <MapView
         ref={mapRef}
-        style={{ flex: 1 }}
+        style={StyleSheet.absoluteFillObject}
         initialRegion={{
           latitude: currentMarker.latitude,
           longitude: currentMarker.longitude,
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-        onPress={handleMapPress} // จับการกดที่แผนที่
+        onPress={handleMapPress}
       >
-        {/* ปักหมุดที่ตำแหน่ง Makro ที่เลือก */}
         <Marker
           coordinate={{
             latitude: currentMarker.latitude,
@@ -91,7 +89,6 @@ export default function MapsScreen() {
           title={currentMarker.label}
         />
 
-        {/* ตำแหน่งผู้ใช้ */}
         {location && (
           <Marker
             coordinate={{
@@ -103,7 +100,6 @@ export default function MapsScreen() {
           />
         )}
 
-        {/* ปักหมุดตำแหน่งที่ผู้ใช้คลิก */}
         {customMarker && (
           <Marker
             coordinate={customMarker}
@@ -113,21 +109,19 @@ export default function MapsScreen() {
         )}
       </MapView>
 
-      {/* ปุ่ม Search Bar อยู่กลางบน */}
       <View style={styles.searchBar}>
         <RNPickerSelect
-          onValueChange={handleLocationChange} // เปลี่ยนสถานที่เมื่อเลือก
+          onValueChange={handleLocationChange}
           value={selectedLocation}
           items={[
             { label: LOCATIONS['Makro 1'].label, value: 'Makro 1' },
             { label: LOCATIONS['Makro 2'].label, value: 'Makro 2' },
           ]}
           style={pickerStyles}
-          placeholder={{ label: '', value: null }} // เอาคำว่า 'Select an item' ออก
+          placeholder={{ label: '', value: null }}
         />
       </View>
 
-      {/* ปุ่มไปยังตำแหน่งของตัวเอง */}
       <View style={styles.controls}>
         <Button title="ไปยังตำแหน่งของฉัน" onPress={goToUserLocation} />
       </View>
@@ -136,9 +130,13 @@ export default function MapsScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   searchBar: {
     position: 'absolute',
-    top: 40, // คุมตำแหน่งแนวตั้ง
+    top: 40,
     left: '10%',
     right: '10%',
     zIndex: 1,
@@ -169,7 +167,7 @@ const pickerStyles = {
     backgroundColor: 'white',
     color: 'black',
     marginBottom: 8,
-    fontWeight: 'bold',
+    fontWeight: '700' as const,
   },
   inputAndroid: {
     fontSize: 16,
@@ -181,6 +179,6 @@ const pickerStyles = {
     backgroundColor: 'white',
     color: 'black',
     marginBottom: 8,
-    fontWeight: 'bold',
+    fontWeight: '700' as const,
   },
 };
