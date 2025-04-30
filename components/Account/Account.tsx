@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { StyleSheet, View, Alert, Text } from 'react-native'
-import { Button, Input } from '@rneui/themed'
+import { StyleSheet, View, Alert, Text, Image } from 'react-native'
+import { Button } from '@rneui/themed'
 import { Session } from '@supabase/supabase-js'
 import { router, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,9 +9,13 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 export default function Account() {
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
-  const [website, setWebsite] = useState('')
+  const [firstname, setFirstname] = useState('')
+  const [lastname, setLastname] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
-  
+  const [postsCount, setPostsCount] = useState(0)
+  const [followersCount, setFollowersCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
+
   const [session, setSession] = useState<Session | null>(null)
   const router = useRouter();
 
@@ -33,7 +37,7 @@ export default function Account() {
           <Button 
             title="Go to Login" 
             onPress={() => router.replace('/(auth)/login')}
-            buttonStyle={{ backgroundColor: '#007AFF', borderRadius: 8, paddingVertical: 12 }}
+            buttonStyle={styles.button}
           />
         </View>
       </SafeAreaView>
@@ -47,7 +51,7 @@ export default function Account() {
 
       const { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, website, avatar_url`)
+        .select(`username, firstname, lastname, avatar_url`)
         .eq('id', session?.user.id)
         .single()
       if (error && status !== 406) {
@@ -56,45 +60,30 @@ export default function Account() {
 
       if (data) {
         setUsername(data.username)
-        setWebsite(data.website)
+        setFirstname(data.firstname)
+        setLastname(data.lastname)
         setAvatarUrl(data.avatar_url)
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(error.message)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  async function updateProfile({
-    username,
-    website,
-    avatar_url,
-  }: {
-    username: string
-    website: string
-    avatar_url: string
-  }) {
-    try {
-      setLoading(true)
-      if (!session?.user) throw new Error('No user on the session!')
+      // Get follower and post counts
+      const { count: postCount } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact' })
+        .eq('user_id', session?.user.id);
+      setPostsCount(postCount || 0);
 
-      const updates = {
-        id: session?.user.id,
-        username,
-        website,
-        avatar_url,
-        updated_at: new Date(),
-      }
+      const { count: followers } = await supabase
+        .from('followers')
+        .select('*', { count: 'exact' })
+        .eq('user_id', session?.user.id);
+      setFollowersCount(followers || 0);
 
-      const { error } = await supabase.from('profiles').upsert(updates)
+      const { count: following } = await supabase
+        .from('following')
+        .select('*', { count: 'exact' })
+        .eq('user_id', session?.user.id);
+      setFollowingCount(following || 0);
 
-      if (error) {
-        throw error
-      }
-      Alert.alert('Profile updated successfully!')
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert(error.message)
@@ -115,52 +104,46 @@ export default function Account() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>Manage your account settings</Text>
-      
-      <View style={styles.formContainer}>
-        <View style={styles.verticallySpaced}>
-          <Input 
-            label="Email" 
-            value={session?.user?.email} 
-            disabled 
-            leftIcon={{ type: 'font-awesome', name: 'envelope' }}
-          />
-        </View>
-        <View style={styles.verticallySpaced}>
-          <Input 
-            label="Username" 
-            value={username || ''} 
-            onChangeText={(text) => setUsername(text)}
-            leftIcon={{ type: 'font-awesome', name: 'user' }}
-          />
-        </View>
-        <View style={styles.verticallySpaced}>
-          <Input 
-            label="Website" 
-            value={website || ''} 
-            onChangeText={(text) => setWebsite(text)}
-            leftIcon={{ type: 'font-awesome', name: 'globe' }}
-          />
-        </View>
+      <View style={styles.header}>
+        {/* Profile Image */}
+        <Image
+          source={{ uri: avatarUrl || 'https://via.placeholder.com/150' }}
+          style={styles.profileImage}
+        />
+        <Text style={styles.username}>{username}</Text>
+      </View>
 
-        <View style={[styles.verticallySpaced, styles.mt20]}>
-          <Button
-            title={loading ? 'Loading ...' : 'Update Profile'}
-            onPress={() => updateProfile({ username, website, avatar_url: avatarUrl })}
-            disabled={loading}
-            buttonStyle={styles.updateButton}
-          />
-        </View>
+      <Text style={styles.name}>{firstname} {lastname}</Text>
 
-        <View style={styles.verticallySpaced}>
-          <Button 
-            title="Sign Out" 
-            onPress={handleSignOut}
-            buttonStyle={styles.signOutButton}
-            type="outline"
-          />
+      <View style={styles.statsContainer}>
+        <View style={styles.statItem}>
+          <Text style={styles.statCount}>{postsCount}</Text>
+          <Text style={styles.statLabel}>Posts</Text>
         </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statCount}>{followersCount}</Text>
+          <Text style={styles.statLabel}>Followers</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statCount}>{followingCount}</Text>
+          <Text style={styles.statLabel}>Following</Text>
+        </View>
+      </View>
+
+      <Text style={styles.bio}>This is your bio, feel free to edit it!</Text>
+
+      <View style={styles.actionButtons}>
+        <Button 
+          title={loading ? 'Loading ...' : 'Update Profile'}
+          disabled={loading}
+          buttonStyle={styles.updateButton}
+        />
+        <Button 
+          title="Sign Out" 
+          onPress={handleSignOut}
+          buttonStyle={styles.signOutButton}
+          type="outline"
+        />
       </View>
     </View>
   )
@@ -172,30 +155,56 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F2E6',
     padding: 16,
   },
-  formContainer: {
-    marginTop: 20,
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  title: {
-    fontSize: 36,
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#007AFF',
+  },
+  username: {
+    fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 20,
+    marginTop: 10,
     color: '#000000',
   },
-  subtitle: {
-    fontSize: 18,
+  name: {
+    fontSize: 20,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 10,
+    marginBottom: 20,
+    color: '#000000',
+  },
+  bio: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 10,
     marginBottom: 20,
     color: '#666666',
   },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: 'stretch',
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
   },
-  mt20: {
-    marginTop: 20,
+  statItem: {
+    alignItems: 'center',
+  },
+  statCount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  actionButtons: {
+    marginTop: 30,
   },
   updateButton: {
     backgroundColor: '#007AFF',
@@ -206,5 +215,12 @@ const styles = StyleSheet.create({
     borderColor: '#FF3B30',
     borderRadius: 8,
     paddingVertical: 12,
+    marginTop: 10,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    width: 200,
   },
 })
