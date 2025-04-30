@@ -53,6 +53,7 @@ export default function Forgot() {
             const styles = StyleSheet.create({
                 container: {
                 marginTop: 40,
+                backgroundColor: '#F8F2E6',
             padding: 12,
   },
             verticallySpaced: {

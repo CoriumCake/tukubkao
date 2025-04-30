@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "react-native";
 
 const TabsLayout = () => {
   return (
@@ -7,14 +8,18 @@ const TabsLayout = () => {
       <Tabs.Screen name="(home)" options={{
         title: "Home",
         tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="home" color={color} size={size} />
+          <Image
+          source={require('../../assets/images/Icon_Home.png')}
+          style={{ width: size, height: size, tintColor: color, }}/>
         ),
         headerShown: false,
       }} />
       <Tabs.Screen name="(inventory)" options={{
-        title: "Inventory",
+        title: "Fridge",
         tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="clipboard-list" color={color} size={size} />
+          <Image
+          source={require('../../assets/images/Icon_Fridge.png')}
+          style={{ width: size, height: size, tintColor: color, }}/>
         ),
         headerShown: false,
       }} />
@@ -28,14 +33,18 @@ const TabsLayout = () => {
       <Tabs.Screen name="(maps)" options={{
         title: "Maps",
         tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="map" color={color} size={size} />
+          <Image
+          source={require('../../assets/images/Icon_Map.png')}
+          style={{ width: size, height: size, tintColor: color, }}/>
         ),
         headerShown: false,
       }} />
       <Tabs.Screen name="(profile)" options={{
         title: "Profile",
         tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="account" color={color} size={size} />
+          <Image
+          source={require('../../assets/images/Icon_User.png')}
+          style={{ width: size, height: size, tintColor: color, }}/>
         ),
         headerShown: false,
       }} />

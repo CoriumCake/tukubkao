@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { StyleSheet, View, Alert, Text, Image } from 'react-native'
 import { Button } from '@rneui/themed'
 import { Session } from '@supabase/supabase-js'
-import { router, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
+import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Account() {
@@ -15,9 +16,10 @@ export default function Account() {
   const [postsCount, setPostsCount] = useState(0)
   const [followersCount, setFollowersCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
-
   const [session, setSession] = useState<Session | null>(null)
-  const router = useRouter();
+
+  const router = useRouter();  // สำหรับการใช้งาน expo-router
+  const navigation = useNavigation();  // สำหรับการใช้งาน React Navigation
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -28,6 +30,7 @@ export default function Account() {
   useEffect(() => {
     if (session) getProfile()
   }, [session])
+ 
 
   if (!session) {
     return (
@@ -43,7 +46,7 @@ export default function Account() {
       </SafeAreaView>
     );
   }
-
+  
   async function getProfile() {
     try {
       setLoading(true)
@@ -105,28 +108,41 @@ export default function Account() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        {/* Profile Image */}
+        <View style={styles.headerRow}>
+          <Text style={styles.username}>username{username}</Text>
+          <Button
+            icon={
+              <Image
+              //source={require('../../../../assets/images/Icon_Setting.png')}มาแก้ทีหลัง
+                style={{ width: 25, height: 20 }}
+              />
+            }
+            type="clear"
+          />
+        </View>
+      </View>
+
+
+      {/* Profile Image and Stats Container */}
+      <View style={styles.profileContainer}>
         <Image
           source={{ uri: avatarUrl || 'https://via.placeholder.com/150' }}
           style={styles.profileImage}
         />
-        <Text style={styles.username}>{username}</Text>
-      </View>
-
-      <Text style={styles.name}>{firstname} {lastname}</Text>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statCount}>{postsCount}</Text>
-          <Text style={styles.statLabel}>Posts</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statCount}>{followersCount}</Text>
-          <Text style={styles.statLabel}>Followers</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statCount}>{followingCount}</Text>
-          <Text style={styles.statLabel}>Following</Text>
+        <View style={styles.statsContainer}>
+          <Text style={styles.name}>{firstname} {lastname}</Text>
+          <View style={styles.statItem}>
+            <Text style={styles.statCount}>{postsCount}</Text>
+            <Text style={styles.statLabel}>Posts</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statCount}>{followersCount}</Text>
+            <Text style={styles.statLabel}>Followers</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statCount}>{followingCount}</Text>
+            <Text style={styles.statLabel}>Following</Text>
+          </View>
         </View>
       </View>
 
@@ -156,43 +172,49 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
+    marginTop: 10, 
+    marginBottom: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },  
+  username: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  profileContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100, 
+    height: 100, 
+    borderRadius: 50, 
     borderWidth: 3,
-    borderColor: '#007AFF',
+    borderColor: '#A5B68D',
+    marginLeft: '3%',
   },
-  username: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 10,
-    color: '#000000',
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', 
+    marginBottom: 20, 
+    width: '65%', 
+    alignItems: 'center',
   },
   name: {
     fontSize: 20,
     textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     color: '#000000',
-  },
-  bio: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-    color: '#666666',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
   },
   statItem: {
     alignItems: 'center',
+    marginHorizontal: 15, 
   },
   statCount: {
     fontSize: 18,
@@ -203,16 +225,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
   },
+  bio: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    color: '#666666',
+  },
   actionButtons: {
     marginTop: 30,
+    justifyContent: 'space-between',
   },
   updateButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A5B68D',
     borderRadius: 8,
     paddingVertical: 12,
   },
   signOutButton: {
-    borderColor: '#FF3B30',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
     borderRadius: 8,
     paddingVertical: 12,
     marginTop: 10,
