@@ -1,4 +1,4 @@
-package com.anonymous.tukubkao
+package com.sut.tukubkao
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
