@@ -6,7 +6,13 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-app.use(cors());
+// Configure CORS to allow requests from any origin during development
+app.use(cors({
+  origin: '*', // Be more restrictive in production
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 
 const apiKey = process.env.DEEPSEEK_API_KEY;

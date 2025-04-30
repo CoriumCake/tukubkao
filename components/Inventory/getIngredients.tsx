@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Ingredient {
   name: string;
@@ -15,8 +15,37 @@ export function useIngredients() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  const fetchIngredients = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        throw new Error('No user session');
+      }
+
+      const { data, error } = await supabase
+        .from('ingredients')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('mfg', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setIngredients(data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching ingredients');
+    }
+  }, []);
 
   useEffect(() => {
+    let subscription: any = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2 seconds
+
     async function setupRealtime() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -25,20 +54,10 @@ export function useIngredients() {
         }
 
         // Initial fetch
-        const { data, error } = await supabase
-          .from('ingredients')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('mfg', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setIngredients(data || []);
+        await fetchIngredients();
 
         // Set up realtime subscription
-        const subscription = supabase
+        subscription = supabase
           .channel('ingredients_changes')
           .on(
             'postgres_changes',
@@ -69,22 +88,45 @@ export function useIngredients() {
               }
             }
           )
-          .subscribe();
+          .subscribe((status) => {
+            console.log('Subscription status:', status);
+            setIsConnected(status === 'SUBSCRIBED');
+            
+            if (status === 'CHANNEL_ERROR') {
+              if (retryCount < maxRetries) {
+                retryCount++;
+                console.log(`Retrying subscription (${retryCount}/${maxRetries})...`);
+                setTimeout(setupRealtime, retryDelay);
+              } else {
+                setError('Failed to establish realtime connection after multiple attempts');
+              }
+            }
+          });
 
         return () => {
-          subscription.unsubscribe();
+          if (subscription) {
+            subscription.unsubscribe();
+          }
         };
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : 'An error occurred while setting up realtime');
+        setLoading(false);
       } finally {
         setLoading(false);
       }
     }
 
     setupRealtime();
-  }, []);
 
-  return { ingredients, loading, error };
+    // Cleanup function
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, [fetchIngredients]);
+
+  return { ingredients, loading, error, isConnected, refetch: fetchIngredients };
 }
 
 export async function addIngredient(ingredient: Omit<Ingredient, 'user_id'>) {
