@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { StyleSheet, View, Alert, Text, Image } from 'react-native'
-import { Button } from '@rneui/themed'
+import { Button, Icon } from '@rneui/themed'
 import { Session } from '@supabase/supabase-js'
 import { useRouter } from 'expo-router'
 import { useNavigation } from '@react-navigation/native'
@@ -10,8 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 export default function Account() {
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
-  const [firstname, setFirstname] = useState('')
-  const [lastname, setLastname] = useState('')
+  const [fullName, setFullName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [postsCount, setPostsCount] = useState(0)
   const [followersCount, setFollowersCount] = useState(0)
@@ -54,7 +53,7 @@ export default function Account() {
 
       const { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, firstname, lastname, avatar_url`)
+        .select(`username, full_name, avatar_url, c_post, c_followers, c_following`)
         .eq('id', session?.user.id)
         .single()
       if (error && status !== 406) {
@@ -63,30 +62,14 @@ export default function Account() {
 
       if (data) {
         setUsername(data.username)
-        setFirstname(data.firstname)
-        setLastname(data.lastname)
+        setFullName(data.full_name)
         setAvatarUrl(data.avatar_url)
+        setPostsCount(data.c_post || 0)
+        setFollowersCount(data.c_followers || 0)
+        setFollowingCount(data.c_following || 0)
+        const avatarPublicUrl = await getAvatarUrl(data.avatar_url)
+        setAvatarUrl(avatarPublicUrl)
       }
-
-      // Get follower and post counts
-      const { count: postCount } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact' })
-        .eq('user_id', session?.user.id);
-      setPostsCount(postCount || 0);
-
-      const { count: followers } = await supabase
-        .from('followers')
-        .select('*', { count: 'exact' })
-        .eq('user_id', session?.user.id);
-      setFollowersCount(followers || 0);
-
-      const { count: following } = await supabase
-        .from('following')
-        .select('*', { count: 'exact' })
-        .eq('user_id', session?.user.id);
-      setFollowingCount(following || 0);
-
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert(error.message)
@@ -94,6 +77,17 @@ export default function Account() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function getAvatarUrl(path) {
+    if (!path) return null;
+    // Replace 'avatars' with your actual bucket name if different
+    const { data, error } = supabase.storage.from('avatars').getPublicUrl(path);
+    if (error) {
+      console.error('Error getting avatar URL:', error.message);
+      return null;
+    }
+    return data.publicUrl;
   }
 
   async function handleSignOut() {
@@ -109,15 +103,20 @@ export default function Account() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={styles.username}>username{username}</Text>
+          <Text style={styles.username}>{username}</Text>
           <Button
             icon={
-              <Image
-              //source={require('../../../../assets/images/Icon_Setting.png')}มาแก้ทีหลัง
-                style={{ width: 25, height: 20 }}
+              <Icon
+                name="menu"
+                type="feather"
+                color="#000"
+                size={28}
               />
             }
             type="clear"
+            onPress={() => {
+              router.push('/settings');
+            }}
           />
         </View>
       </View>
@@ -126,11 +125,11 @@ export default function Account() {
       {/* Profile Image and Stats Container */}
       <View style={styles.profileContainer}>
         <Image
-          source={{ uri: avatarUrl || 'https://via.placeholder.com/150' }}
+          source={{ uri: avatarUrl || 'https://mosrzootwtqzcuqgczwb.supabase.co/storage/v1/object/public/avatars/a59b94c1-9081-4744-acbe-07175a504e9b/43073.image2.jpg' }}
           style={styles.profileImage}
         />
         <View style={styles.statsContainer}>
-          <Text style={styles.name}>{firstname} {lastname}</Text>
+          <Text style={styles.name}>{fullName}</Text>
           <View style={styles.statItem}>
             <Text style={styles.statCount}>{postsCount}</Text>
             <Text style={styles.statLabel}>Posts</Text>
