@@ -6,9 +6,8 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-// Configure CORS to allow requests from any origin during development
 app.use(cors({
-  origin: '*', // Be more restrictive in production
+  origin: '*', 
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type']
 }));
@@ -73,7 +72,6 @@ app.post('/api/recipes', async (req, res) => {
     }
   });
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, Button, StyleSheet, Alert, Dimensions, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, Region } from 'react-native-maps';
+import MapView, { Marker, Region, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import RNPickerSelect from 'react-native-picker-select';
 
@@ -24,14 +24,47 @@ export default function MapsScreen() {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<LocationKey>('Makro 1');
   const [customMarker, setCustomMarker] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapView>(null);
 
+  const initializeMap = async () => {
+    try {
+      setIsLoading(true);
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setMapError('Location permission not granted');
+        return;
+      }
+
+      // Set initial location
+      const predefinedLocation = {
+        latitude: 14.980815253986936,
+        longitude: 102.07641840766442,
+      };
+      setLocation(predefinedLocation);
+      
+      // Try to get current location
+      try {
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation({
+          latitude: currentLocation.coords.latitude,
+          longitude: currentLocation.coords.longitude,
+        });
+      } catch (error) {
+        console.log('Could not get current location, using predefined location');
+      }
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      setMapError('Error initializing map');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const predefinedLocation = {
-      latitude: 14.980815253986936,
-      longitude: 102.07641840766442,
-    };
-    setLocation(predefinedLocation);
+    initializeMap();
   }, []);
 
   const goToUserLocation = () => {
@@ -70,44 +103,91 @@ export default function MapsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView
-        ref={mapRef}
-        style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: currentMarker.latitude,
-          longitude: currentMarker.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-        onPress={handleMapPress}
-      >
-        <Marker
-          coordinate={{
-            latitude: currentMarker.latitude,
-            longitude: currentMarker.longitude,
-          }}
-          title={currentMarker.label}
-        />
-
-        {location && (
-          <Marker
-            coordinate={{
-              latitude: location.latitude,
-              longitude: location.longitude,
+      {mapError && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{mapError}</Text>
+          <Button 
+            title="Retry" 
+            onPress={() => {
+              setMapError(null);
+              setIsMapReady(false);
+              setIsLoading(true);
+              initializeMap();
+            }} 
+          />
+        </View>
+      )}
+      <View style={styles.mapContainer}>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={styles.loadingText}>Initializing map...</Text>
+          </View>
+        ) : (
+          <MapView
+            ref={mapRef}
+            provider={PROVIDER_GOOGLE}
+            style={styles.map}
+            initialRegion={{
+              latitude: currentMarker.latitude,
+              longitude: currentMarker.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
             }}
-            title="ตำแหน่งของคุณ"
-            pinColor="blue"
-          />
-        )}
+            onPress={handleMapPress}
+            onMapReady={() => {
+              console.log('Map is ready');
+              setIsMapReady(true);
+            }}
+            showsUserLocation={true}
+            showsMyLocationButton={true}
+            showsCompass={true}
+            showsScale={true}
+            showsTraffic={false}
+            showsBuildings={true}
+            showsIndoors={true}
+            loadingEnabled={true}
+            loadingIndicatorColor="#666666"
+            loadingBackgroundColor="#eeeeee"
+          >
+            <Marker
+              coordinate={{
+                latitude: currentMarker.latitude,
+                longitude: currentMarker.longitude,
+              }}
+              title={currentMarker.label}
+              description="Selected location"
+            />
 
-        {customMarker && (
-          <Marker
-            coordinate={customMarker}
-            title="ตำแหน่งที่เลือก"
-            pinColor="green"
-          />
+            {location && (
+              <Marker
+                coordinate={{
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                }}
+                title="ตำแหน่งของคุณ"
+                description="Your current location"
+                pinColor="blue"
+              />
+            )}
+
+            {customMarker && (
+              <Marker
+                coordinate={customMarker}
+                title="ตำแหน่งที่เลือก"
+                description="Custom selected location"
+                pinColor="green"
+              />
+            )}
+          </MapView>
         )}
-      </MapView>
+        {!isMapReady && !isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={styles.loadingText}>Loading map...</Text>
+          </View>
+        )}
+      </View>
 
       <View style={styles.searchBar}>
         <RNPickerSelect
@@ -133,6 +213,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  mapContainer: {
+    flex: 1,
+    backgroundColor: '#e0e0e0',
+    position: 'relative',
+  },
+  map: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    zIndex: 1,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+  },
+  errorContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255,0,0,0.7)',
+    padding: 10,
+    zIndex: 2,
+  },
+  errorText: {
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   searchBar: {
     position: 'absolute',
