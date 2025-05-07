@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, SafeAreaView, StatusBar } from 'react-native';
 import { useIngredients } from '@/components/Inventory/getIngredients';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -132,6 +132,7 @@ export default function InventoryScreen() {
   }
 
   return (
+    <SafeAreaView style={{ flex: 1, paddingTop: StatusBar.currentHeight }}>
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.statusBar}>
@@ -179,6 +180,7 @@ export default function InventoryScreen() {
         />
       )}
     </View>
+    </SafeAreaView>
   );
 }
 
