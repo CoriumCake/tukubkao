@@ -8,11 +8,12 @@ interface PrimaryButtonProps {
     disabled?: boolean; /* กำหนดให้ปุ่มกดได้หรือกดไม้ได้ */
     isBold?: boolean; /* เปิดปิดตัวหนาของข้อความในปุ่ม */
     backgroundColor?: string; /* กำหนดสีพื้นหลังของปุ่ม */
+    style?: object;
 }
 
 /*วิธีใช้ <PrimaryButton text="" onClick={} disabled={} isBold={} backgroundColor=""/> */
 
-const PrimaryButton: React.FC<PrimaryButtonProps> = ({ text, onClick, disabled, isBold=false,backgroundColor }) => {
+const PrimaryButton: React.FC<PrimaryButtonProps> = ({ text, onClick, disabled, isBold=false,backgroundColor,style, }) => {
     
     return (
         <View style={styles.container}>
@@ -24,6 +25,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ text, onClick, disabled, 
                 styles.buttonContainer,
                 disabled && styles.disabledButton,
                 { backgroundColor: backgroundColor || '#A5B68D' },
+                style,
               ]}
             >
             
