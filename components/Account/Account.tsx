@@ -12,7 +12,7 @@ export default function Account() {
   const [firstname, setFirstname] = useState('')
   const [lastname, setLastname] = useState('')
   const [fullName, setFullName] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [postsCount, setPostsCount] = useState(0)
   const [followersCount, setFollowersCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
@@ -45,35 +45,34 @@ export default function Account() {
 
       if (data) {
         setUsername(data.username)
-        setFirstname(data.firstname)
-        setLastname(data.lastname)
-        setFullName(data.firstname + ' ' + data.lastname)
-        setAvatarUrl(data.profile_pic)
+        setFullName(data.full_name)
+        setAvatarUrl(data.avatar_url)
+        setPostsCount(data.c_post || 0)
+        setFollowersCount(data.c_followers || 0)
+        setFollowingCount(data.c_following || 0)
+        if (data.avatar_url) {
+          const avatarPublicUrl = await getAvatarUrl(data.avatar_url)
+          if (avatarPublicUrl) {
+            setAvatarUrl(avatarPublicUrl)
+          }
+        }
       }
-
-      const { count: postCount } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact' })
-        .eq('user_id', session.user.id)
-      setPostsCount(postCount || 0)
-
-      const { count: followers } = await supabase
-        .from('followers')
-        .select('*', { count: 'exact' })
-        .eq('user_id', session.user.id)
-      setFollowersCount(followers || 0)
-
-      const { count: following } = await supabase
-        .from('following')
-        .select('*', { count: 'exact' })
-        .eq('user_id', session.user.id)
-      setFollowingCount(following || 0)
-
     } catch (error) {
       if (error instanceof Error) Alert.alert(error.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  async function getAvatarUrl(path) {
+    if (!path) return null;
+    // Replace 'avatars' with your actual bucket name if different
+    const { data, error } = supabase.storage.from('avatars').getPublicUrl(path);
+    if (error) {
+      console.error('Error getting avatar URL:', error.message);
+      return null;
+    }
+    return data.publicUrl;
   }
 
   async function handleSignOut() {
