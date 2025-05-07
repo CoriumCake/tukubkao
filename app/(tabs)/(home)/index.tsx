@@ -1,11 +1,13 @@
-import { View, Text, Image, FlatList, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, Image, FlatList, ScrollView, StyleSheet, StatusBar, SafeAreaView } from 'react-native';
+import PostCard from '@/components/PostCard/PostCard';
+import SearchBar from '@/components/SearchBar/SearchBar';
+import { useState } from 'react';
 
 const posts = [
  {
    id: '1',
    username: 'เฟิน',
-   image: 'https://via.placeholder.com/300',
+   image: require('../../../assets/images/food1.jpg'),
    caption: 'มื้อเที่ยงของเราวันนี้ 🍱',
  },
  {
@@ -30,37 +32,39 @@ const posts = [
 ];
 
 export default function Page() {
+  const [searchQuery, setSearchQuery] = useState('');
  return (
-   <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-    <ScrollView>
+   <SafeAreaView style={styles.safeArea}>
      <FlatList
-       data={posts}
-       keyExtractor={(item) => item.id}
-       contentContainerStyle={{ padding: 16 }}
-       showsVerticalScrollIndicator={false}
-       renderItem={({ item }) => (
-         <View style={{
-           marginBottom: 24,
-           backgroundColor: '#f9f9f9',
-           padding: 12,
-           borderRadius: 12,
-           shadowColor: '#000',
-           shadowOffset: { width: 0, height: 2 },
-           shadowOpacity: 0.1,
-           shadowRadius: 4,
-           elevation: 2
-         }}>
-           <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>{item.username}</Text>
-           <Image
-             source={{ uri: item.image }}
-             style={{ width: '100%', height: 200, borderRadius: 12, marginBottom: 8 }}
-             resizeMode="cover"
-           />
-           <Text style={{ fontSize: 14, color: '#333' }}>{item.caption}</Text>
-         </View>
-       )}
-     />
-     </ScrollView>
+        data={posts}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View style={styles.searchBarContainer}>
+            <SearchBar value={searchQuery} onChangeText={setSearchQuery} placeholder="search..." />
+          </View>
+        }
+        renderItem={({ item }) => (
+          <PostCard username={item.username} image={item.image} caption={item.caption} />
+        )}
+      />
    </SafeAreaView>
  );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    paddingTop: StatusBar.currentHeight,
+    backgroundColor: '#F8F2E6',
+
+  },
+  content: {
+    padding: 16,
+  },
+  searchBarContainer: {
+    marginBottom: 16,
+    
+  }
+});
