@@ -60,7 +60,12 @@ export default function Login() {
       </View>
 
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <PrimaryButton text="Log In" onClick={signInWithEmail} disabled={loading} />
+        <PrimaryButton 
+          text="Log In" 
+          onClick={signInWithEmail} 
+          disabled={loading} 
+          style={styles.button} 
+        />
       </View>
 
       <View style={styles.verticallySpaced}>
@@ -88,6 +93,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F2E6',
     padding: 16,
+
   },
   verticallySpaced: {
     paddingTop: 4,
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontFamily: 'Ysabeau-Bold',
     textAlign: 'center',
-    marginTop: 100,
+    marginTop: 50, 
     color: '#000000',
   },
   subtitle: {
@@ -130,5 +136,14 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontFamily: 'Ysabeau-Bold',
+    fontWeight: 'bold',
+  },
+  button: {
+    fontFamily: 'Ysabeau-Bold',
+    fontWeight: 'bold',
+    borderRadius: 8, 
+    width: '100%', 
+    alignSelf: 'center', 
   },
 })
+
