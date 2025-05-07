@@ -13,7 +13,14 @@ const TabsLayout = () => {
             style={{ width: size, height: size, tintColor: color }}
           />
         ),
-        headerShown: true,
+        headerShown: false,
+      }} />
+      <Tabs.Screen name="(add-item)" options={{
+        title: "Add Item",
+        tabBarIcon: ({ color, size }) => (
+          <MaterialCommunityIcons name="plus-circle" color={color} size={size} />
+        ),
+        headerShown: false,
       }} />
       <Tabs.Screen name="(inventory)" options={{
         title: "Fridge",
@@ -23,14 +30,7 @@ const TabsLayout = () => {
             style={{ width: size, height: size, tintColor: color }}
           />
         ),
-        headerShown: true,
-      }} />
-      <Tabs.Screen name="(add-item)" options={{
-        title: "Add Item",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="plus-circle" color={color} size={size} />
-        ),
-        headerShown: true,
+        headerShown: false,
       }} />
       <Tabs.Screen name="(maps)" options={{
         title: "Maps",
@@ -40,7 +40,7 @@ const TabsLayout = () => {
             style={{ width: size, height: size, tintColor: color }}
           />
         ),
-        headerShown: true,
+        headerShown: false,
       }} />
       <Tabs.Screen name="(profile)" options={{
         title: "Profile",
@@ -50,7 +50,7 @@ const TabsLayout = () => {
             style={{ width: size, height: size, tintColor: color }}
           />
         ),
-        headerShown: true,
+        headerShown: false,
       }} />
     </Tabs>
   );
