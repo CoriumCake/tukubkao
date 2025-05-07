@@ -107,7 +107,7 @@ export default function Account() {
             <Button
               icon={
                 <Image
-                  source={require('../../assets/images/Icon_Setting.png')} // แก้ path ให้ตรงกับตำแหน่งจริง
+                  source={require('../../assets/images/Icon_Setting.png')} 
                   style={{ width: 25, height: 25 }}
                 />
               }

@@ -15,7 +15,7 @@ export default function Settings() {
 
   const handleLogout = () => {
     // TODO: Add Supabase logout here
-    router.replace('/(auth)/login') // Ensure this path is correct based on your folder structure
+    router.replace('/(auth)/login') 
   }
 
   return (
@@ -25,7 +25,7 @@ export default function Settings() {
           <TouchableOpacity 
             key={index} 
             style={styles.menuItem}
-            onPress={() => router.push(item.route as any)} // Type assertion to bypass strict type checks
+            onPress={() => router.push(item.route as any)}  
           >
             <Image source={item.icon} style={styles.icon} />
             <Text style={styles.menuText}>{item.label}</Text>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   
   logoutText: {
     color: '#FFFFFF', 
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   
