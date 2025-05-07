@@ -79,7 +79,7 @@ export default function Account() {
     }
   }
 
-  async function getAvatarUrl(path) {
+  async function getAvatarUrl(path: string) {
     if (!path) return null;
     // Replace 'avatars' with your actual bucket name if different
     const { data, error } = supabase.storage.from('avatars').getPublicUrl(path);
