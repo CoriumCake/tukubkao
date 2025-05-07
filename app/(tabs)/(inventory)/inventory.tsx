@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndi
 import { useIngredients } from '@/components/Inventory/getIngredients';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import IngredientActions from '@/components/Inventory/IngredientActions';
+import IngredientActions from '../../../components/Inventory/IngredientActions';
 import { API_URL } from '@/lib/config';
 
 interface Ingredient {
