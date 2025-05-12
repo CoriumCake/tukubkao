@@ -27,7 +27,6 @@ A cross-platform culinary assistant that transforms your ingredients into delici
 ### Installation
 ```bash
 git clone https://github.com/CoriumCake/tukubkao.git
-cd tukubkao
 npm install
 ```
 
@@ -35,6 +34,9 @@ npm install
 
 ### Running the App
 ```bash
+#simple android build
+npx expo run:android
+
 # Start Expo development server
 npm run start
 
