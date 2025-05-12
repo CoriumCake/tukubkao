@@ -10,7 +10,7 @@ export default function AccountDetails() {
   // Replace with real user data from state/store
   const [name, setName] = useState("Pitchayanee fernInwZa");
   const [email, setEmail] = useState("testuser@gmail.com");
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [password, setPassword] = useState(""); // for password update
 
   // Pick and upload avatar

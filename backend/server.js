@@ -72,6 +72,72 @@ app.post('/api/recipes', async (req, res) => {
     }
   });
 
+app.post('/api/recipe-details', async (req, res) => {
+  try {
+    const { title, ingredients } = req.body;
+
+    if (!title || !ingredients) {
+      return res.status(400).json({ error: 'Title and ingredients are required' });
+    }
+
+    const ingredientsList = ingredients.join(', ');
+    
+    try {
+      const response = await client.chat.createCompletion({
+        messages: [
+          {
+            role: 'system',
+            content: `You are a professional chef. Format your recipe response in the following structure:
+                     
+                     INGREDIENTS:
+                     • [List each ingredient on a new line with a bullet point]
+                     
+                     INSTRUCTIONS:
+                     [Numbered steps for cooking process]
+                     
+                     COOKING TIME:
+                     [Total time needed]
+                     
+                     TIPS:
+                     • [List any helpful tips with bullet points]
+                     
+                     Important: Do not use asterisks or markdown for bold text. The sections INGREDIENTS, INSTRUCTIONS, COOKING TIME, and TIPS will be automatically formatted as bold in the app.`
+          },
+          {
+            role: 'user',
+            content: `Create a detailed recipe for "${title}" using these ingredients: ${ingredientsList}. 
+                     Format the response with bullet points for ingredients and tips, and numbered steps for instructions.
+                     Do not use any markdown formatting or asterisks.`
+          }
+        ],
+        model: 'deepseek-chat',
+        temperature: 0.7,
+        max_tokens: 500
+      });
+
+      const recipeDescription = response.choices[0].message.content;
+
+      res.json({
+        title,
+        recipe_desc: recipeDescription,
+        ingred: ingredients
+      });
+    } catch (apiError) {
+      console.error('Deepseek API Error:', apiError);
+      res.status(500).json({ 
+        error: 'Failed to generate recipe details',
+        message: 'Please try again in a few moments'
+      });
+    }
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({ 
+      error: 'An error occurred while processing your request',
+      message: 'Please try again later'
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
