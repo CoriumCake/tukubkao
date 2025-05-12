@@ -35,7 +35,11 @@ npm install
 ### Running the App
 ```bash
 #simple android build
-npx expo run:android
+
+1.create local.properties at /android
+2.edit local.properties to use your sdk.dir=[path to your sdk]
+example C:\\Users\\yourname\\AppData\\Local\\Android\\Sdk
+2.npx expo run:android
 
 # Start Expo development server
 npm run start
