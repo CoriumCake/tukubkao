@@ -11,7 +11,7 @@ export default function Account() {
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
   const [fullName, setFullName] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [postsCount, setPostsCount] = useState(0)
   const [followersCount, setFollowersCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
@@ -68,7 +68,9 @@ export default function Account() {
         setFollowersCount(data.c_followers || 0)
         setFollowingCount(data.c_following || 0)
         const avatarPublicUrl = await getAvatarUrl(data.avatar_url)
-        setAvatarUrl(avatarPublicUrl)
+        if (avatarPublicUrl) {
+          setAvatarUrl(avatarPublicUrl)
+        }
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -81,13 +83,13 @@ export default function Account() {
 
   async function getAvatarUrl(path: string) {
     if (!path) return null;
-    // Replace 'avatars' with your actual bucket name if different
-    const { data, error } = supabase.storage.from('avatars').getPublicUrl(path);
-    if (error) {
-      console.error('Error getting avatar URL:', error.message);
+    try {
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error getting avatar URL:', error);
       return null;
     }
-    return data.publicUrl;
   }
 
   async function handleSignOut() {
