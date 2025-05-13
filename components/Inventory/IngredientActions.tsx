@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { updateIngredient, deleteIngredient } from './getIngredients';
+import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '@/lib/supabase';
+import { decode } from 'base64-arraybuffer';
 
 interface IngredientActionsProps {
   ingredient: {
@@ -63,6 +66,45 @@ export default function IngredientActions({ ingredient, onClose, visible, onSucc
     );
   };
 
+  const handleEditImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.5,
+        base64: true,
+      });
+      if (!result.canceled && result.assets[0].base64) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          throw new Error('No user session');
+        }
+        const fileExt = 'jpg';
+        const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
+        const contentType = 'image/jpeg';
+        const { data, error } = await supabase.storage
+          .from('ingredient-images')
+          .upload(fileName, decode(result.assets[0].base64), {
+            contentType,
+            upsert: true,
+          });
+        if (error) {
+          Alert.alert('Error', 'Failed to upload image');
+          return;
+        }
+        const { data: publicUrlData } = supabase.storage
+          .from('ingredient-images')
+          .getPublicUrl(fileName);
+        setEditedIngredient({ ...editedIngredient, image_url: publicUrlData.publicUrl });
+        await updateIngredient(ingredient.name, { image_url: publicUrlData.publicUrl });
+        onSuccess && onSuccess();
+        Alert.alert('Success', 'Image updated!');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update image');
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -78,6 +120,11 @@ export default function IngredientActions({ ingredient, onClose, visible, onSucc
               <Ionicons name="close" size={24} color="#000" />
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity style={styles.editImageButton} onPress={handleEditImage}>
+            <Ionicons name="image" size={20} color="#007bff" />
+            <Text style={styles.editImageText}>Edit Image</Text>
+          </TouchableOpacity>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Name</Text>
@@ -178,6 +225,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  editImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    alignSelf: 'flex-start',
+    gap: 6,
+  },
+  editImageText: {
+    color: '#007bff',
+    fontSize: 16,
+    marginLeft: 4,
   },
   inputContainer: {
     marginBottom: 15,

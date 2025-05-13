@@ -19,7 +19,7 @@ export default function Login() {
     })
 
     if (error) Alert.alert(error.message)
-    else router.replace('/(tabs)/(home)')
+    else router.replace('/(tabs)' as any);
     setLoading(false)
   }
 

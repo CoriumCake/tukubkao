@@ -140,7 +140,7 @@ export default function MapsScreen() {
               setIsMapReady(true);
             }}
             showsUserLocation={true}
-            showsMyLocationButton={true}
+            showsMyLocationButton={false}
             showsCompass={true}
             showsScale={true}
             showsTraffic={false}
@@ -165,7 +165,7 @@ export default function MapsScreen() {
                   latitude: location.latitude,
                   longitude: location.longitude,
                 }}
-                title="ตำแหน่งของคุณ"
+                title="Your Location"
                 description="Your current location"
                 pinColor="blue"
               />
@@ -174,7 +174,7 @@ export default function MapsScreen() {
             {customMarker && (
               <Marker
                 coordinate={customMarker}
-                title="ตำแหน่งที่เลือก"
+                title="Selected Location"
                 description="Custom selected location"
                 pinColor="green"
               />
@@ -203,7 +203,7 @@ export default function MapsScreen() {
       </View>
 
       <View style={styles.controls}>
-        <Button title="ไปยังตำแหน่งของฉัน" onPress={goToUserLocation} />
+        <Button title="Locate My Location" onPress={goToUserLocation} />
       </View>
     </SafeAreaView>
   );
@@ -259,13 +259,18 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     position: 'absolute',
-    top: 40,
-    left: '10%',
-    right: '10%',
-    zIndex: 1,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    top: Platform.OS === 'android' ? 70 : 40,
+    left: 20,
+    right: 20,
+    zIndex: 5,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 8,
-    paddingHorizontal: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    height: 20,
   },
   controls: {
     position: 'absolute',
@@ -294,7 +299,6 @@ const pickerStyles = {
   },
   inputAndroid: {
     fontSize: 16,
-    paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: 'gray',
