@@ -4,10 +4,11 @@ import { styles } from './TextButtonStyles';
 
 interface TextButtonProps {
     content: string; /* ข้อความฝั่งขวา */
-    text: string; /* ข้อความในปุ่ม */
+    text: React.ReactNode; /* ข้อความในปุ่ม */
     onClick: () => void; /* ฟังก์ชันที่เรียกเมื่อกดปุ่ม */
     disabled?: boolean; /* กำหนดให้ปุ่มกดได้หรือกดไม้ได้ */
     isBold?: boolean; /* เปิดปิดตัวหนาของข้อความในปุ่ม */
+    textStyle?: object
 }
 
 const TextButton: React.FC<TextButtonProps> = ({ content, text, onClick, disabled, isBold=false }) => {
