@@ -1,9 +1,19 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
-const PostCard = ({ username, image, caption }: { username: string; image: string; caption: string }) => {
+const PostCard = ({ id, username, image, caption }: { id: string; username: string; image: string; caption: string }) => {
+  const router = useRouter();
+
+  const handlePress = () => {
+    router.push({
+      pathname: '/(tabs)/(home)/[id]',
+      params: { id, username, image, caption }
+    });
+  };
+
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={handlePress}>
       <Text style={styles.username}>{username}</Text>
       <View style={styles.imageContainer}>
       {/* <Image source={{ uri: image }} style={styles.image} resizeMode="cover" /> */}
@@ -14,7 +24,7 @@ const PostCard = ({ username, image, caption }: { username: string; image: strin
       />
       </View>
       <Text style={styles.caption}>{caption}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 

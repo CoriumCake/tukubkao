@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import "../global.css"
+import { AuthProvider } from '@/lib/auth';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -36,6 +37,7 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   
   return (
+    <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Stack>
@@ -44,5 +46,6 @@ function RootLayoutNav() {
           <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
         </Stack>
       </ThemeProvider>
+    </AuthProvider>
   );
 }

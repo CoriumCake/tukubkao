@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 
 interface Recipe {
+  id: string;
   title: string;
   recipe_desc?: string;
   ingred: string[];

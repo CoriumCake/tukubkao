@@ -167,7 +167,7 @@ export default function MapsScreen() {
                 }}
                 title="Your Location"
                 description="Your current location"
-                pinColor="blue"
+                pinColor="#A5B68D"
               />
             )}
 

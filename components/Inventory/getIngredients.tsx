@@ -183,3 +183,19 @@ export async function deleteIngredient(name: string) {
     throw error;
   }
 }
+
+export async function deleteRecipe(id: string) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) {
+    throw new Error('No user session');
+  }
+
+  const { error } = await supabase
+    .from('recipes')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+}

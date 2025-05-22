@@ -43,6 +43,10 @@
         "googleMaps": {
           "apiKey": "AIzaSyD7jiKFEPqsMKvTEV0lVOnNj1Gcz1e-iRk"
         }
+      },
+      "notification": {
+        "icon": "./assets/notification-icon.png",
+        "color": "#A5B68D"
       }
     },
     "web": {

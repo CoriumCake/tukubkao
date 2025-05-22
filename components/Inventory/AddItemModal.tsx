@@ -224,11 +224,11 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
             <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPress={() => setPickerModalVisible(false)}>
               <View style={styles.pickerModal}>
                 <TouchableOpacity style={styles.pickerOption} onPress={() => pickImage('camera')}>
-                  <Ionicons name="camera" size={24} color="#007bff" />
+                  <Ionicons name="camera" size={24} color="#A5B68D" />
                   <Text style={styles.pickerOptionText}>Take Photo</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.pickerOption} onPress={() => pickImage('gallery')}>
-                  <Ionicons name="image" size={24} color="#007bff" />
+                  <Ionicons name="image" size={24} color="#A5B68D" />
                   <Text style={styles.pickerOptionText}>Choose from Gallery</Text>
                 </TouchableOpacity>
               </View>
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   pickerOptionText: {
     fontSize: 16,
-    color: '#007bff',
+    color: '#A5B68D',
     marginLeft: 12,
   },
   cancelImageButton: {

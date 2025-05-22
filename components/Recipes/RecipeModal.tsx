@@ -2,7 +2,15 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+interface Recipe {
+  id: string; // or number, depending on your schema
+  title: string;
+  recipe_desc?: string;
+  ingred: string[];
+}
+
 interface RecipeDetails {
+  id: string; // or number
   title: string;
   recipe_desc: string;
   ingred: string[];
@@ -13,6 +21,8 @@ interface RecipeModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (recipe: RecipeDetails) => void;
+  isSaved?: boolean;
+  onDelete?: (recipe: RecipeDetails) => void;
 }
 
 export const RecipeModal: React.FC<RecipeModalProps> = ({
@@ -20,6 +30,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
   visible,
   onClose,
   onSave,
+  isSaved = false,
+  onDelete,
 }) => {
   if (!recipe) return null;
 
@@ -97,16 +109,29 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
           </ScrollView>
 
           <View style={styles.modalFooter}>
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={() => {
-                onSave(recipe);
-                onClose();
-              }}
-            >
-              <Ionicons name="save-outline" size={24} color="#fff" />
-              <Text style={styles.saveButtonText}>Save Recipe</Text>
-            </TouchableOpacity>
+            {isSaved ? (
+              <TouchableOpacity 
+                style={[styles.saveButton, { backgroundColor: '#e74c3c' }]}
+                onPress={() => {
+                  onDelete && onDelete(recipe);
+                  onClose();
+                }}
+              >
+                <Ionicons name="trash-outline" size={24} color="#fff" />
+                <Text style={styles.saveButtonText}>Delete Recipe</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={styles.saveButton}
+                onPress={() => {
+                  onSave(recipe);
+                  onClose();
+                }}
+              >
+                <Ionicons name="save-outline" size={24} color="#fff" />
+                <Text style={styles.saveButtonText}>Save Recipe</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>

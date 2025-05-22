@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Icon } from '@rneui/themed';
 import { useRouter } from 'expo-router';
+import { supabase } from '../../lib/supabase';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -13,6 +14,16 @@ export default function SettingsScreen() {
     { icon: 'help-circle', label: 'Help', type: 'feather', onPress: () => {} },
     { icon: 'info', label: 'About', type: 'feather', onPress: () => {} },
   ];
+
+  // Add sign out handler
+  async function handleSignOut() {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      router.replace('/(auth)/login');
+    } else {
+      Alert.alert('Error signing out:', error.message);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -28,7 +39,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Log out */}
-      <TouchableOpacity style={styles.logout} onPress={() => Alert.alert('Log out pressed')}>
+      <TouchableOpacity style={styles.logout} onPress={handleSignOut}>
         <Text style={styles.logoutText}>Log out</Text>
       </TouchableOpacity>
     </View>

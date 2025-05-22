@@ -26,10 +26,38 @@ export default function Signup() {
 
         if (error) {
             Alert.alert(error.message);
-        } else if (!session) {
+        } else if (session) {
+            // Create profile after successful signup
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([
+                    {
+                        id: session.user.id,
+                        username: generateUsername(email),
+                        avatar_url: null,
+                        c_post: 0,
+                        c_followers: 0,
+                        c_following: 0
+                    }
+                ]);
+
+            if (profileError) {
+                Alert.alert('Error creating profile:', profileError.message);
+            } else {
+                router.replace('/(tabs)' as any);
+            }
+        } else {
             Alert.alert('Please check your inbox for email verification!');
         }
         setLoading(false);
+    }
+
+    function generateUsername(email: string): string {
+        let base = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+        if (base.length < 4) {
+            base = base + Math.random().toString(36).substring(2, 6 - base.length);
+        }
+        return base;
     }
 
     return (

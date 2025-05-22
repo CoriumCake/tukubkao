@@ -15,10 +15,13 @@ const TabsLayout = () => {
         ),
         headerShown: false,
       }} />
-      <Tabs.Screen name="(add-item)" options={{
-        title: "Add Item",
+      <Tabs.Screen name="(recipes)" options={{
+        title: "Recipes",
         tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="plus-circle" color={color} size={size} />
+          <Image
+            source={require('../../assets/images/Icon_Carrots.png')}
+            style={{ width: size, height: size, tintColor: color }}
+          />
         ),
         headerShown: false,
       }} />

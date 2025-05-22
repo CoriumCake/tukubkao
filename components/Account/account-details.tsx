@@ -7,15 +7,39 @@ import { useRouter } from 'expo-router';
 
 export default function AccountDetails() {
   const router = useRouter();
-  // Replace with real user data from state/store
-  const [name, setName] = useState("Pitchayanee fernInwZa");
-  const [email, setEmail] = useState("testuser@gmail.com");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [password, setPassword] = useState(""); // for password update
 
+  // Fetch profile data
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('username, avatar_url')
+      .eq('id', userId)
+      .single();
+    if (!error && data) {
+      setUsername(data.username || '');
+      setAvatarUrl(data.avatar_url || null);
+    }
+  };
+
+  // Fetch session and set userId
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.id) {
+        setUserId(data.session.user.id);
+        setEmail(data.session.user.email || '');
+        fetchProfile(data.session.user.id); // fetch profile here
+      }
+    });
+  }, []);
+
   // Pick and upload avatar
   const pickAvatar = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, quality: 1 });
+    let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', allowsEditing: true, quality: 1 });
     if (!result.canceled) {
       const file = result.assets[0];
       const fileExt = file.uri.split('.').pop();
@@ -28,24 +52,32 @@ export default function AccountDetails() {
       const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, blob, { upsert: true });
       if (uploadError) return Alert.alert('Upload failed', uploadError.message);
 
-      // Update profile with new avatar path
+      // Update profile with new avatar path (use user id)
+      if (!userId) return Alert.alert('No user session');
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: filePath })
-        .eq('email', email); // or use user id
+        .eq('id', userId);
       if (updateError) return Alert.alert('Update failed', updateError.message);
 
-      setAvatarUrl(filePath);
+      // Get the public URL for the new avatar
+      let newAvatarUrl = filePath;
+      if (!filePath.startsWith('http')) {
+        newAvatarUrl = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
+      }
+      setAvatarUrl(newAvatarUrl + '?t=' + Date.now());
+
       Alert.alert('Success', 'Avatar updated!');
     }
   };
 
-  // Update name/email
+  // Update username
   const updateProfile = async () => {
+    if (!userId) return Alert.alert('No user session');
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: name })
-      .eq('email', email); // or use user id
+      .update({ username })
+      .eq('id', userId);
     if (error) return Alert.alert('Update failed', error.message);
     Alert.alert('Success', 'Profile updated!');
   };
@@ -65,9 +97,10 @@ export default function AccountDetails() {
   };
 
   // Get public avatar URL
-  const avatarPublicUrl = avatarUrl
-    ? supabase.storage.from('avatars').getPublicUrl(avatarUrl).data.publicUrl
-    : null;
+  let avatarDisplayUrl = avatarUrl;
+  if (avatarUrl && !avatarUrl.startsWith('http')) {
+    avatarDisplayUrl = supabase.storage.from('avatars').getPublicUrl(avatarUrl).data.publicUrl;
+  }
 
   return (
     <View style={styles.container}>
@@ -75,21 +108,21 @@ export default function AccountDetails() {
         <TouchableOpacity onPress={() => router.back()}>
           <Icon name="arrow-left" type="feather" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Accounts</Text>
+        <Text style={styles.headerTitle}>Account</Text>
         <View style={{ width: 24 }} />
       </View>
       {/* Avatar */}
       <TouchableOpacity onPress={pickAvatar}>
         <Image
-          source={{ uri: avatarPublicUrl || 'https://via.placeholder.com/100' }}
+          source={{ uri: avatarDisplayUrl || 'https://via.placeholder.com/100' }}
           style={styles.avatar}
         />
         <Text style={{ textAlign: 'center', color: '#888' }}>Change Avatar</Text>
       </TouchableOpacity>
       {/* Editable fields */}
       <View style={styles.row}>
-        <Text style={styles.label}>Name</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} />
+        <Text style={styles.label}>Username</Text>
+        <TextInput style={styles.input} value={username} onChangeText={setUsername} />
       </View>
       <View style={styles.row}>
         <Text style={styles.label}>Email</Text>

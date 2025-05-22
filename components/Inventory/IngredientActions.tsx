@@ -122,7 +122,7 @@ export default function IngredientActions({ ingredient, onClose, visible, onSucc
           </View>
 
           <TouchableOpacity style={styles.editImageButton} onPress={handleEditImage}>
-            <Ionicons name="image" size={20} color="#007bff" />
+            <Ionicons name="image" size={20} color="#A5B68D" />
             <Text style={styles.editImageText}>Edit Image</Text>
           </TouchableOpacity>
 
@@ -168,7 +168,17 @@ export default function IngredientActions({ ingredient, onClose, visible, onSucc
             <TextInput
               style={styles.input}
               value={editedIngredient.exp}
-              onChangeText={(text) => setEditedIngredient({ ...editedIngredient, exp: text })}
+              onChangeText={(text) => {
+                // Ensure the date is in YYYY-MM-DD format
+                const date = new Date(text);
+                if (!isNaN(date.getTime())) {
+                  const formattedDate = date.toISOString().split('T')[0];
+                  setEditedIngredient({ ...editedIngredient, exp: formattedDate });
+                } else {
+                  setEditedIngredient({ ...editedIngredient, exp: text });
+                }
+              }}
+              placeholder="YYYY-MM-DD"
             />
           </View>
 
@@ -234,7 +244,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   editImageText: {
-    color: '#007bff',
+    color: '#A5B68D',
     fontSize: 16,
     marginLeft: 4,
   },
@@ -269,7 +279,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#dc3545',
   },
   updateButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#A5B68D',
   },
   buttonText: {
     color: 'white',

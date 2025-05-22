@@ -1,17 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Alert, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
-import { useIngredients } from '@/components/Inventory/getIngredients';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Alert, SafeAreaView, StatusBar, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
+import { useIngredients, deleteRecipe } from '@/components/Inventory/getIngredients';
 import { API_URL } from '@/lib/config';
 import { Accelerometer } from 'expo-sensors';
 import { supabase } from '@/lib/supabase';
-import { RecipeCard } from '@/components/RecipeCard';
 import { IngredientCard } from '@/components/Inventory/IngredientCard';
-import { RecipeModal } from '@/components/Inventory/RecipeModal';
-import { RecipeList } from '@/components/Inventory/RecipeList';
-import { GenerateButton } from '@/components/Inventory/GenerateButton';
+import { RecipeModal } from '@/components/Recipes/RecipeModal';
+import { RecipeList } from '@/components/Recipes/RecipeList';
 import { AddItemModal } from '@/components/Inventory/AddItemModal';
 import IngredientActions from '@/components/Inventory/IngredientActions';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+
+// Configure notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 interface Ingredient {
   name: string;
@@ -24,12 +32,14 @@ interface Ingredient {
 }
 
 interface Recipe {
+  id: string;
   title: string;
   recipe_desc?: string;
   ingred: string[];
 }
 
 interface RecipeDetails {
+  id: string;
   title: string;
   recipe_desc: string;
   ingred: string[];
@@ -50,6 +60,13 @@ export const InventoryScreen: React.FC = () => {
   const [isRecipeModalVisible, setIsRecipeModalVisible] = useState(false);
   const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const allCategories = Array.from(new Set(ingredients.map(i => i.category))).sort();
+  const filteredIngredients = ingredients.filter(ingredient =>
+    ingredient.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (!selectedCategory || ingredient.category === selectedCategory)
+  );
 
   useEffect(() => {
     let subscription: any;
@@ -77,6 +94,73 @@ export const InventoryScreen: React.FC = () => {
   useEffect(() => {
     fetchSavedRecipes();
   }, []);
+
+  // Request notification permissions
+  useEffect(() => {
+    async function requestNotificationPermissions() {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please enable notifications to receive expiry alerts.');
+      }
+    }
+    requestNotificationPermissions();
+  }, []);
+
+  // Test function for expiring ingredients
+  const testExpiringNotification = useCallback(async () => {
+    const today = new Date();
+    const threeDaysFromNow = new Date(today);
+    threeDaysFromNow.setDate(today.getDate() + 3);
+    
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Ingredients Expiring Soon!',
+        body: `Your Milk expiring on ${threeDaysFromNow.toLocaleDateString()}`,
+        data: { date: threeDaysFromNow.toISOString() },
+      },
+      trigger: null, // Send immediately
+    });
+  }, []);
+
+  // Check for expiring ingredients
+  const checkExpiringIngredients = useCallback(async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+    const expiringIngredients = ingredients.filter(ingredient => {
+      if (!ingredient.exp) return false;
+      
+      const expiryDate = new Date(ingredient.exp);
+      expiryDate.setHours(0, 0, 0, 0); // Reset time to start of day
+      
+      const diffDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays === 3;
+    });
+
+    if (expiringIngredients.length > 0) {
+      for (const ingredient of expiringIngredients) {
+        const expiryDate = new Date(ingredient.exp);
+        expiryDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Ingredients Expiring Soon!',
+            body: `Your ${ingredient.name} has ${diffDays} days left before expiration`,
+            data: { ingredient },
+          },
+          trigger: null, // Send immediately
+        });
+      }
+    }
+  }, [ingredients]);
+
+  // Check for expiring ingredients when ingredients list changes
+  useEffect(() => {
+    if (ingredients.length > 0) {
+      checkExpiringIngredients();
+    }
+  }, [ingredients, checkExpiringIngredients]);
 
   const handleShake = () => {
     if (currentRecipes.length > 0) {
@@ -121,10 +205,12 @@ export const InventoryScreen: React.FC = () => {
   const toggleIngredientSelection = (item: Ingredient) => {
     setSelectedIngredients(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(item.name)) {
-        newSet.delete(item.name);
+      const itemKey = `${item.name}-${item.user_id}-${item.mfg}-${item.exp}-${item.quantity}`;
+      
+      if (newSet.has(itemKey)) {
+        newSet.delete(itemKey);
       } else {
-        newSet.add(item.name);
+        newSet.add(itemKey);
       }
       return newSet;
     });
@@ -138,7 +224,11 @@ export const InventoryScreen: React.FC = () => {
 
   const handleSuccess = useCallback(async () => {
     await refetch();
-  }, [refetch]);
+    // Check for expiring ingredients after update
+    setTimeout(() => {
+      checkExpiringIngredients();
+    }, 1000); // Small delay to ensure ingredients are loaded
+  }, [refetch, checkExpiringIngredients]);
 
   const keyExtractor = useCallback((item: Ingredient) => {
     return `${item.name}-${item.user_id}-${item.mfg}-${item.exp}-${item.quantity}`;
@@ -204,7 +294,12 @@ export const InventoryScreen: React.FC = () => {
       }
 
       const recipeDetails = await response.json();
-      setSelectedRecipe(recipeDetails);
+      setSelectedRecipe({
+        id: recipe.id,
+        title: recipeDetails.title,
+        recipe_desc: recipeDetails.recipe_desc,
+        ingred: recipeDetails.ingred
+      });
       setIsRecipeModalVisible(true);
     } catch (error: any) {
       console.error('Error fetching recipe details:', error);
@@ -221,7 +316,7 @@ export const InventoryScreen: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('recipes')
-        .select('title, recipe_desc, ingred');
+        .select('id, title, recipe_desc, ingred');
       if (error) throw error;
       setSavedRecipes(data || []);
     } catch (err) {
@@ -229,10 +324,21 @@ export const InventoryScreen: React.FC = () => {
     }
   };
 
+  const handleDeleteRecipe = async (recipe: RecipeDetails) => {
+    try {
+      await deleteRecipe(recipe.id);
+      Alert.alert('Success', 'Recipe deleted successfully!');
+      fetchSavedRecipes();
+    } catch (error: any) {
+      console.error('Error deleting recipe:', error);
+      Alert.alert('Error', 'Failed to delete recipe');
+    }
+  };
+
   const renderIngredient = ({ item }: { item: Ingredient }) => (
     <IngredientCard
       item={item}
-      isSelected={selectedIngredients.has(item.name)}
+      isSelected={selectedIngredients.has(`${item.name}-${item.user_id}-${item.mfg}-${item.exp}-${item.quantity}`)}
       onPress={() => toggleIngredientSelection(item)}
       onLongPress={() => handleLongPress(item)}
     />
@@ -241,7 +347,7 @@ export const InventoryScreen: React.FC = () => {
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
+        <ActivityIndicator size="large" color="#A5B68D" />
       </View>
     );
   }
@@ -261,17 +367,37 @@ export const InventoryScreen: React.FC = () => {
     <SafeAreaView style={{ flex: 1, paddingTop: StatusBar.currentHeight }}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <GenerateButton
-            onPress={handleGenerateRecipes}
-            isGenerating={isGenerating}
-          />
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setIsAddModalVisible(true)}
+          <Text style={styles.screenTitle}>Fridge</Text>
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={testExpiringNotification}
           >
-            <Ionicons name="add-circle" size={24} color="#007bff" />
+            <Ionicons name="notifications" size={24} color="#A5B68D" />
           </TouchableOpacity>
         </View>
+        <TextInput
+          style={styles.searchBar}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search ingredients by name..."
+        />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={{paddingVertical: 8}}>
+          <TouchableOpacity
+            style={[styles.filterChip, !selectedCategory && styles.filterChipSelected]}
+            onPress={() => setSelectedCategory(null)}
+          >
+            <Text style={[styles.filterChipText, !selectedCategory && styles.filterChipTextSelected]}>All</Text>
+          </TouchableOpacity>
+          {allCategories.map(category => (
+            <TouchableOpacity
+              key={category}
+              style={[styles.filterChip, selectedCategory === category && styles.filterChipSelected]}
+              onPress={() => setSelectedCategory(selectedCategory === category ? null : category)}
+            >
+              <Text style={[styles.filterChipText, selectedCategory === category && styles.filterChipTextSelected]}>{category}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
         {showRecipeList ? (
           <RecipeList
             recipes={currentRecipes}
@@ -280,7 +406,7 @@ export const InventoryScreen: React.FC = () => {
           />
         ) : (
           <FlatList
-            data={ingredients}
+            data={filteredIngredients}
             renderItem={renderIngredient}
             keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContainer}
@@ -288,8 +414,8 @@ export const InventoryScreen: React.FC = () => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={['#007bff']}
-                tintColor="#007bff"
+                colors={['#A5B68D']}
+                tintColor="#A5B68D"
               />
             }
           />
@@ -306,32 +432,37 @@ export const InventoryScreen: React.FC = () => {
           />
         )}
         <RecipeModal
-          recipe={selectedRecipe}
+          recipe={selectedRecipe as RecipeDetails}
           visible={isRecipeModalVisible}
           onClose={() => setIsRecipeModalVisible(false)}
           onSave={handleSaveRecipe}
+          isSaved={!!selectedRecipe && savedRecipes.some(r => r.id === selectedRecipe.id)}
+          onDelete={handleDeleteRecipe}
         />
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setIsAddModalVisible(true)}
+        >
+          <Ionicons name="add" size={32} color="#fff" />
+        </TouchableOpacity>
         <AddItemModal
           visible={isAddModalVisible}
           onClose={() => setIsAddModalVisible(false)}
           onSuccess={handleSuccess}
         />
-        {savedRecipes.map((recipe, idx) => (
-          <RecipeCard
-            key={idx}
-            title={recipe.title}
-            information={recipe.recipe_desc || ''}
-            ingredients={Array.isArray(recipe.ingred) ? recipe.ingred : []}
-            onPress={() => {
-              setSelectedRecipe({
-                title: recipe.title,
-                recipe_desc: recipe.recipe_desc || '',
-                ingred: recipe.ingred
-              });
-              setIsRecipeModalVisible(true);
-            }}
-          />
-        ))}
+        {selectedIngredients.size > 0 && (
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={handleGenerateRecipes}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="sparkles" size={28} color="#fff" />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -352,13 +483,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#dee2e6',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 16,
   },
   errorText: {
     color: 'red',
@@ -366,7 +496,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   retryButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#A5B68D',
     padding: 12,
     borderRadius: 8,
     marginTop: 20,
@@ -377,7 +507,109 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  addButton: {
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 32,
+    backgroundColor: '#A5B68D',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  screenTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 24,
+    marginBottom: 16,
+    color: '#222',
+    textAlign: 'left',
+  },
+  searchBar: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    marginBottom: 8,
+  },
+  filterBar: {
+    marginBottom: 8,
+    maxHeight: 40,
+  },
+  filterChip: {
+    backgroundColor: '#e9ecef',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    height: 32,
+    justifyContent: 'center',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  filterChipSelected: {
+    backgroundColor: '#A5B68D',
+    borderColor: '#A5B68D',
+  },
+  filterChipText: {
+    color: '#333',
+    fontWeight: '500',
+    fontSize: 11,
+  },
+  filterChipTextSelected: {
+    color: '#fff',
+  },
+  recipeCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  recipeInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recipeImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 16,
+  },
+  placeholderImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#e9ecef',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  recipeName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  recipeDesc: {
+    fontSize: 14,
+    color: '#495057',
+  },
+  testButton: {
     padding: 8,
   },
 }); 

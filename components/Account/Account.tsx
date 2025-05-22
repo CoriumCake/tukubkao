@@ -8,9 +8,9 @@ import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Account() {
+  
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
-  const [fullName, setFullName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [postsCount, setPostsCount] = useState(0)
   const [followersCount, setFollowersCount] = useState(0)
@@ -22,12 +22,16 @@ export default function Account() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
+      console.log('Session data:', data);
       setSession(data.session)
     })
   }, [])
 
   useEffect(() => {
-    if (session) getProfile()
+    if (session) {
+      console.log('Session available, getting profile...');
+      getProfile()
+    }
   }, [session])
  
 
@@ -45,34 +49,69 @@ export default function Account() {
       </SafeAreaView>
     );
   }
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F2E6' }}>
+        <View style={{ flex: 1, padding: 16, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18 }}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!username) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F2E6' }}>
+        <View style={{ flex: 1, padding: 16, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, marginBottom: 20 }}>Profile not found</Text>
+          <Button 
+            title="Go to Login" 
+            onPress={() => router.replace('/(auth)/login')}
+            buttonStyle={styles.button}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
   
   async function getProfile() {
     try {
       setLoading(true)
       if (!session?.user) throw new Error('No user on the session!')
+      console.log('Fetching profile for user:', session.user.id);
 
       const { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, full_name, avatar_url, c_post, c_followers, c_following`)
+        .select(`username, avatar_url, c_post, c_followers, c_following`)
         .eq('id', session?.user.id)
         .single()
+      
+      console.log('Profile data:', data);
+      console.log('Profile error:', error);
+      console.log('Profile status:', status);
+
       if (error && status !== 406) {
         throw error
       }
 
       if (data) {
         setUsername(data.username)
-        setFullName(data.full_name)
-        setAvatarUrl(data.avatar_url)
+        let avatar = data.avatar_url;
+        if (avatar && !avatar.startsWith('http')) {
+          const avatarPublicUrl = await getAvatarUrl(avatar);
+          console.log('Avatar public URL:', avatarPublicUrl);
+          if (avatarPublicUrl) {
+            avatar = avatarPublicUrl;
+          }
+        }
+        setAvatarUrl(avatar);
         setPostsCount(data.c_post || 0)
         setFollowersCount(data.c_followers || 0)
         setFollowingCount(data.c_following || 0)
-        const avatarPublicUrl = await getAvatarUrl(data.avatar_url)
-        if (avatarPublicUrl) {
-          setAvatarUrl(avatarPublicUrl)
-        }
       }
     } catch (error) {
+      console.error('Error in getProfile:', error);
       if (error instanceof Error) {
         Alert.alert(error.message)
       }
@@ -131,7 +170,6 @@ export default function Account() {
           style={styles.profileImage}
         />
         <View style={styles.statsContainer}>
-          <Text style={styles.name}>{fullName}</Text>
           <View style={styles.statItem}>
             <Text style={styles.statCount}>{postsCount}</Text>
             <Text style={styles.statLabel}>Posts</Text>
@@ -150,17 +188,6 @@ export default function Account() {
       <Text style={styles.bio}>This is your bio, feel free to edit it!</Text>
 
       <View style={styles.actionButtons}>
-        <Button 
-          title={loading ? 'Loading ...' : 'Update Profile'}
-          disabled={loading}
-          buttonStyle={styles.updateButton}
-        />
-        <Button 
-          title="Sign Out" 
-          onPress={handleSignOut}
-          buttonStyle={styles.signOutButton}
-          type="outline"
-        />
       </View>
     </View>
   )
@@ -206,12 +233,6 @@ const styles = StyleSheet.create({
     marginBottom: 20, 
     width: '65%', 
     alignItems: 'center',
-  },
-  name: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginBottom: 10,
-    color: '#000000',
   },
   statItem: {
     alignItems: 'center',

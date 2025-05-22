@@ -39,7 +39,6 @@ export default function AddIngredientForm() {
         Alert.alert('Permission needed', 'Please grant camera roll permissions to upload images');
         return;
       }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -47,7 +46,6 @@ export default function AddIngredientForm() {
         quality: 0.5,
         base64: true,
       });
-
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(result.assets[0].uri);
         await uploadImage(result.assets[0].base64);
@@ -399,7 +397,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   submitButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#A5B68D',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

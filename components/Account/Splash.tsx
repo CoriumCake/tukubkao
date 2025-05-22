@@ -1,14 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import PrimaryButton from "../PrimaryButton/PrimaryButton";
 import { router } from "expo-router";
 import { useFonts } from "expo-font";
+import { supabase } from "@/lib/supabase";
 
 export default function Splash() {
-
     const [fontsLoaded] = useFonts({
         'YsabeauOffice': require('../../assets/fonts/YsabeauOffice-Regular.ttf'),
     });
+
+    useEffect(() => {
+        // Check for existing session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                router.replace('/(tabs)');
+            }
+        });
+    }, []);
 
     if (!fontsLoaded) {
         return null; 
