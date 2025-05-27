@@ -4,56 +4,62 @@ import { Image } from "react-native";
 
 const TabsLayout = () => {
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={{
+        tabBarStyle: {
+          backgroundColor: '#F8F2E6',
+          borderTopWidth: 0,
+          elevation: 0,
+        },
+        tabBarActiveTintColor: '#A5B68D', // muted green for both
+        tabBarInactiveTintColor: '#A5B68D',
+        headerShown: false,
+      }}
+    >
       <Tabs.Screen name="(home)" options={{
         title: "Home",
-        tabBarIcon: ({ color, size }) => (
+        tabBarIcon: ({ color, size, focused }) => (
           <Image
             source={require('../../assets/images/Icon_Home.png')}
-            style={{ width: size, height: size, tintColor: color }}
+            style={{ width: focused ? size + 2 : size, height: focused ? size + 2 : size, tintColor: color }}
           />
         ),
-        headerShown: false,
       }} />
       <Tabs.Screen name="(recipes)" options={{
         title: "Recipes",
-        tabBarIcon: ({ color, size }) => (
+        tabBarIcon: ({ color, size, focused }) => (
           <Image
             source={require('../../assets/images/Icon_Carrots.png')}
-            style={{ width: size, height: size, tintColor: color }}
+            style={{ width: focused ? size + 2 : size, height: focused ? size + 2 : size, tintColor: color }}
           />
         ),
-        headerShown: false,
       }} />
       <Tabs.Screen name="(inventory)" options={{
         title: "Fridge",
-        tabBarIcon: ({ color, size }) => (
+        tabBarIcon: ({ color, size, focused }) => (
           <Image
             source={require('../../assets/images/Icon_Fridge.png')}
-            style={{ width: size, height: size, tintColor: color }}
+            style={{ width: focused ? size + 2 : size, height: focused ? size + 2 : size, tintColor: color }}
           />
         ),
-        headerShown: false,
       }} />
       <Tabs.Screen name="(maps)" options={{
         title: "Maps",
-        tabBarIcon: ({ color, size }) => (
+        tabBarIcon: ({ color, size, focused }) => (
           <Image
             source={require('../../assets/images/Icon_Map.png')}
-            style={{ width: size, height: size, tintColor: color }}
+            style={{ width: focused ? size + 2 : size, height: focused ? size + 2 : size, tintColor: color }}
           />
         ),
-        headerShown: false,
       }} />
       <Tabs.Screen name="(profile)" options={{
         title: "Profile",
-        tabBarIcon: ({ color, size }) => (
+        tabBarIcon: ({ color, size, focused }) => (
           <Image
             source={require('../../assets/images/Icon_User.png')}
-            style={{ width: size, height: size, tintColor: color }}
+            style={{ width: focused ? size + 2 : size, height: focused ? size + 2 : size, tintColor: color }}
           />
         ),
-        headerShown: false,
       }} />
     </Tabs>
   );
