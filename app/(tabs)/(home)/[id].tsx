@@ -1,23 +1,74 @@
-import { View, Text, Image, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, ImageSourcePropType } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, ImageSourcePropType } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth';
 
 export default function PostDetail() {
   const { id, username, image, caption } = useLocalSearchParams();
   const router = useRouter();
+  const { session } = useAuth();
+  const [isSaved, setIsSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Convert image string to proper ImageSourcePropType
   const imageSource: ImageSourcePropType = typeof image === 'string' 
     ? { uri: image }
     : require('@/assets/images/Icon_User.png'); // Fallback image
 
+  // Check if post is already saved
+  useEffect(() => {
+    const checkSaved = async () => {
+      if (!session?.user?.id || !id) return;
+      const { data, error } = await supabase
+        .from('saved_posts')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('post_id', id)
+        .single();
+      setIsSaved(!!data);
+    };
+    checkSaved();
+  }, [session, id]);
+
+  // Save/Unsave post
+  const handleToggleSave = async () => {
+    if (!session?.user?.id || !id) return;
+    setLoading(true);
+    if (isSaved) {
+      // Unsave
+      await supabase
+        .from('saved_posts')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('post_id', id);
+      setIsSaved(false);
+    } else {
+      // Save
+      await supabase
+        .from('saved_posts')
+        .insert([{ user_id: session.user.id, post_id: id }]);
+      setIsSaved(true);
+    }
+    setLoading(false);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Post</Text>
+        <TouchableOpacity onPress={handleToggleSave} disabled={loading} style={{ marginLeft: 'auto' }}>
+          <Ionicons
+            name={isSaved ? 'bookmark' : 'bookmark-outline'}
+            size={24}
+            color={isSaved ? '#007AFF' : '#000'}
+          />
+        </TouchableOpacity>
       </View>
       
       <ScrollView style={styles.content}>

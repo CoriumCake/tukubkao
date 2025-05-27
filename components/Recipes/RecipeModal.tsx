@@ -3,14 +3,14 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 
 interface Recipe {
-  id: string; // or number, depending on your schema
+  id: string;
   title: string;
   recipe_desc?: string;
   ingred: string[];
 }
 
 interface RecipeDetails {
-  id: string; // or number
+  id: string;
   title: string;
   recipe_desc: string;
   ingred: string[];

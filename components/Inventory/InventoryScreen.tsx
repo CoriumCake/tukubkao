@@ -11,6 +11,7 @@ import { AddItemModal } from '@/components/Inventory/AddItemModal';
 import IngredientActions from '@/components/Inventory/IngredientActions';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
+import { NotificationRequest } from 'expo-notifications';
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -122,8 +123,40 @@ export const InventoryScreen: React.FC = () => {
     });
   }, []);
 
+  // Clear old notifications
+  const clearOldNotifications = useCallback(async () => {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    try {
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      const oldNotifications = scheduledNotifications.filter(
+        (notification: NotificationRequest): boolean => {
+          if (!notification.trigger || typeof notification.trigger !== 'object') return false;
+          const trigger = notification.trigger as { timestamp?: number };
+          if (!trigger.timestamp) return false;
+          return new Date(trigger.timestamp) < twentyFourHoursAgo;
+        }
+      );
+      
+      if (oldNotifications.length > 0) {
+        await Promise.all(
+          oldNotifications.map(notification => 
+            Notifications.cancelScheduledNotificationAsync(notification.identifier)
+          )
+        );
+      }
+      // Dismiss all delivered notifications (Android only; no effect on iOS)
+      await Notifications.dismissAllNotificationsAsync();
+    } catch (error) {
+      console.error('Error clearing old notifications:', error);
+    }
+  }, []);
+
   // Check for expiring ingredients
   const checkExpiringIngredients = useCallback(async () => {
+    await clearOldNotifications(); // Clear old notifications first
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to start of day
 
@@ -157,7 +190,7 @@ export const InventoryScreen: React.FC = () => {
 
   // Check for expiring ingredients when ingredients list changes
   useEffect(() => {
-    if (ingredients.length > 0) {
+    if (ingredients && ingredients.length > 0) {
       checkExpiringIngredients();
     }
   }, [ingredients, checkExpiringIngredients]);
@@ -370,7 +403,7 @@ export const InventoryScreen: React.FC = () => {
           <Text style={styles.screenTitle}>Fridge</Text>
           <TouchableOpacity 
             style={styles.testButton}
-            onPress={testExpiringNotification}
+            onPress={clearOldNotifications}
           >
             <Ionicons name="notifications" size={24} color="#A5B68D" />
           </TouchableOpacity>
