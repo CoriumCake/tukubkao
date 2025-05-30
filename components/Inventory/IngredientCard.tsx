@@ -44,10 +44,9 @@ export const IngredientCard: React.FC<IngredientCardProps> = ({
         )}
         <View style={styles.textContainer}>
           <Text style={styles.ingredientName}>{item.name}</Text>
-          <Text style={styles.ingredientCategory}>{item.category}</Text>
-          <Text style={styles.ingredientQuantity}>Quantity: {item.quantity}</Text>
-          <Text style={styles.ingredientMfg}>MFG: {new Date(item.mfg).toLocaleDateString()}</Text>
-          <Text style={styles.ingredientExp}>EXP: {new Date(item.exp).toLocaleDateString()}</Text>
+          <Text style={styles.ingredientDesc} numberOfLines={2}>
+            {item.category} • Qty: {item.quantity} • Exp: {new Date(item.exp).toLocaleDateString()}
+          </Text>
         </View>
         {isSelected && (
           <View style={styles.selectionIndicator}>
@@ -105,20 +104,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 4,
   },
-  ingredientCategory: {
-    fontSize: 14,
-    color: '#6c757d',
-    marginBottom: 4,
-  },
-  ingredientQuantity: {
-    fontSize: 14,
-    color: '#495057',
-  },
-  ingredientMfg: {
-    fontSize: 14,
-    color: '#495057',
-  },
-  ingredientExp: {
+  ingredientDesc: {
     fontSize: 14,
     color: '#495057',
   },
