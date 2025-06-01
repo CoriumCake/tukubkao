@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thai Recipe API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .recipe-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .recipe-name {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .ingredients-list {
+            margin: 15px 0;
+        }
+        .ingredient-item {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        .instructions-list {
+            margin: 15px 0;
+        }
+        .instruction-item {
+            margin: 10px 0;
+            padding-left: 20px;
+            line-height: 1.5;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 15px 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Thai Recipe API Test</h1>
+        <textarea id="ingredients" placeholder='Enter ingredients as JSON array, e.g., ["chicken", "egg", "rice"]'></textarea>
+        <button onclick="getRecipes()">Get Thai Recipes</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function getRecipes() {
+            const ingredients = document.getElementById('ingredients').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/recipes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ingredients: JSON.parse(ingredients)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                data.recipes.forEach(recipe => {
+                    const recipeCard = document.createElement('div');
+                    recipeCard.className = 'recipe-card';
+                    
+                    recipeCard.innerHTML = `
+                        <div class="recipe-name">${recipe.name}</div>
+                        
+                        <div class="section-title">Additional Ingredients:</div>
+                        <div class="ingredients-list">
+                            ${recipe.additionalIngredients.map(ing => `
+                                <div class="ingredient-item">${ing.name} (${ing.quantity})</div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="section-title">Instructions:</div>
+                        <div class="instructions-list">
+                            ${recipe.instructions.map((step, index) => `
+                                <div class="instruction-item">${index + 1}. ${step}</div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    resultDiv.appendChild(recipeCard);
+                });
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="recipe-card" style="color: red;">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html> 

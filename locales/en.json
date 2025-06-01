@@ -1,0 +1,14 @@
+{
+  "hello": "Hello",
+  "edit_me": "edit me",
+  "posts": "Posts",
+  "followers": "Followers",
+  "following": "Following",
+  "please_login": "Please log in to view your profile",
+  "profile_not_found": "Profile not found",
+  "go_to_login": "Go to Login",
+  "loading_profile": "Loading profile...",
+  "success_add_ingredient": "Ingredient added successfully!",
+  "error": "Error",
+  "fill_required": "Please fill in all required fields"
+} 
