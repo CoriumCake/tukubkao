@@ -43,12 +43,13 @@ const TabsLayout = () => {
           />
         ),
       }} />
-      <Tabs.Screen name="(maps)" options={{
-        title: "Maps",
+      <Tabs.Screen name="(planner)" options={{
+        title: "Planner",
         tabBarIcon: ({ color, size, focused }) => (
-          <Image
-            source={require('../../assets/images/Icon_Map.png')}
-            style={{ width: focused ? size + 2 : size, height: focused ? size + 2 : size, tintColor: color }}
+          <MaterialCommunityIcons
+            name="calendar-text"
+            size={focused ? size + 2 : size}
+            color={color}
           />
         ),
       }} />
