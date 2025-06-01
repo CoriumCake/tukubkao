@@ -15,8 +15,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    YsabeauOffice: require('../assets/fonts/YsabeauOffice-Regular.ttf'),
+    'YsabeauOffice-Regular': require('@/assets/fonts/YsabeauOffice-Regular.ttf'),
+    'YsabeauOffice-Medium': require('@/assets/fonts/YsabeauOffice-Medium.ttf'),
+    'YsabeauOffice-SemiBold': require('@/assets/fonts/YsabeauOffice-SemiBold.ttf'),
+    'YsabeauOffice-Bold': require('@/assets/fonts/YsabeauOffice-Bold.ttf'),
   });
 
   useEffect(() => {
