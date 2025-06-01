@@ -97,15 +97,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 100,
+    paddingBottom: 500,
   },
   titleContainer: {
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20, // ลดจากเดิมถ้ามี
-    marginTop: -100,
   },
   title: {
     fontSize: 64,
@@ -114,21 +113,24 @@ const styles = StyleSheet.create({
   },
   subTitle: {
     fontSize: 24,
-    fontFamily: Fonts.yR, 
+    fontFamily: Fonts.yR,
     color: Colors.text,
+    marginTop: 4,
   },
   inputContainer: {
-    width: '80%',
+    width: '100%',
+    paddingHorizontal: 10,
     marginTop: 20,
   },
   buttonContainer: {
-    width: '80%',
-    marginTop: 10,
+    width: '100%',
+    paddingHorizontal: 10,
   },
   textButtonContainer: {
     marginTop: 10,
+    alignItems: 'center',
   },
   textButtonContainerBottom: {
-    marginTop: -5,
+    alignItems: 'center',
   },
 });

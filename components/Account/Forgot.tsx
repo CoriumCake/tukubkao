@@ -1,67 +1,90 @@
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, View, StyleSheet } from "react-native";
+import { Alert, View, StyleSheet, Text } from "react-native";
 import PrimaryButton from "../PrimaryButton/PrimaryButton";
 import { Input } from "@rneui/themed";
+import Fonts from "@/constants/Fonts";
+import Colors from "@/constants/Colors";
 
 export default function Forgot() {
-    const [email, setEmail] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    async function handleForgotPassword() {
-        setLoading(true);
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: "tukubkao://reset-password",
-        });
+  async function handleForgotPassword() {
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "tukubkao://reset-password",
+    });
 
-        if (error) {
-            Alert.alert(error.message);
-        } else {
-            Alert.alert(
-                "Success",
-                "Please check your email for password reset instructions"
-            );
-            router.back();
-        }
-
-        setLoading(false);
+    if (error) {
+      Alert.alert(error.message);
+    } else {
+      Alert.alert(
+        "Success",
+        "Please check your email for password reset instructions"
+      );
+      router.back();
     }
 
-    return (
-        <View style={styles.container}>
+    setLoading(false);
+  }
 
-        <View style={[styles.verticallySpaced, styles.mt20]}>
-            <Input
-                label="Email"
-                leftIcon={{ type: 'font-awesome', name: 'envelope' }}
-                onChangeText={(text) => setEmail(text)}
-                value={email}
-                placeholder="email@address.com"
-                autoCapitalize={"none"}
-            />
-            <PrimaryButton
-                text={loading ? "Loading" : "Reset Password"}
-                onClick={handleForgotPassword}
-                disabled={loading}
-            />
-            </View>
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Forgot Password</Text>
+
+      <View style={styles.formContainer}>
+        <Input
+          label="Email"
+          leftIcon={{ type: "font-awesome", name: "envelope" }}
+          onChangeText={(text) => setEmail(text)}
+          value={email}
+          placeholder="Your Email "
+          autoCapitalize="none"
+          inputStyle={{ fontFamily: Fonts.yR, paddingLeft: 8 }}
+          labelStyle={{ fontFamily: Fonts.yR, marginBottom: 6 }}
+          containerStyle={{ marginBottom: 20, paddingHorizontal: 0 }}
+          inputContainerStyle={{
+            borderBottomWidth: 1,
+            borderBottomColor: Colors.text,
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <PrimaryButton
+          text={loading ? "Loading..." : "Reset Password"}
+          onClick={handleForgotPassword}
+          disabled={loading}
+        />
+      </View>
+    </View>
+  );
 }
 
-            const styles = StyleSheet.create({
-                container: {
-                marginTop: 40,
-                backgroundColor: '#F8F2E6',
-            padding: 12,
-  },
-            verticallySpaced: {
-                paddingTop: 4,
-            paddingBottom: 4,
-            alignSelf: "stretch",
-  },
-            mt20: {
-                marginTop: 20,
-  },
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#EDE8DC",
+        paddingHorizontal: 20,
+        paddingTop: 100, 
+        paddingBottom: 40, 
+    },
+    title: {
+        fontSize: 42,
+        fontFamily: Fonts.yB,
+        color: Colors.text,
+        textAlign: "center",
+        marginBottom: 90,
+    },
+    formContainer: {
+        flex: 1, 
+        justifyContent: "flex-start",
+        paddingHorizontal: 10,
+    },
+    buttonContainer: {
+    paddingHorizontal: 10,
+    marginBottom: 315, 
+    },
 });
