@@ -267,7 +267,6 @@ export default function RecipesScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1, padding: 16 }}>
-        <Text style={styles.screenTitle}>Recipes</Text>
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}

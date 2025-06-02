@@ -1,6 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useState, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
@@ -9,11 +9,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CreatePost() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newCaption, setNewCaption] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<string>('');
+
+  // Set initial caption from recipe content if available
+  useEffect(() => {
+    if (params.content) {
+      setNewCaption(params.content as string);
+    }
+  }, [params.content]);
 
   const pickImage = async () => {
     try {

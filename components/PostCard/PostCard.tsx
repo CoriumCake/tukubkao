@@ -23,7 +23,7 @@ const PostCard = ({ id, username, image, caption }: { id: string; username: stri
               resizeMode="cover"
       />
       </View>
-      <Text style={styles.caption}>{caption}</Text>
+      <Text style={styles.caption} numberOfLines={5} ellipsizeMode="tail">{caption}</Text>
     </TouchableOpacity>
   );
 };

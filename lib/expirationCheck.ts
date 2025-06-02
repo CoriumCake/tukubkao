@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { scheduleNotification } from './notifications';
+import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
 interface Ingredient {
   name: string;
@@ -47,8 +48,8 @@ export async function checkExpiringIngredients() {
           'Ingredients Expiring Soon',
           `The following ingredients will expire on ${date}: ${ingredients.join(', ')}`,
           {
-            type: 'timeInterval',
-            seconds: 1, // Send immediately
+            type: SchedulableTriggerInputTypes.DATE,
+            date: new Date(Date.now() + 1000) // Send immediately
           }
         );
       }

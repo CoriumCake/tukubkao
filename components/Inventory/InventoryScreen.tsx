@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Alert, SafeAreaView, TouchableOpacity, ScrollView, Modal, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Alert, SafeAreaView, TouchableOpacity, ScrollView, Modal, Image, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIngredients } from '@/components/Inventory/getIngredients';
 import { supabase } from '@/lib/supabase';
@@ -11,6 +11,7 @@ import IngredientActions from '@/components/Inventory/IngredientActions';
 import { RecipeModal } from '@/components/Recipes/RecipeModal';
 import { requestNotificationPermissions, scheduleNotification } from '@/lib/notifications';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
+import { Accelerometer } from 'expo-sensors';
 
 interface Ingredient {
   name: string;
@@ -79,6 +80,9 @@ export const InventoryScreen: React.FC = () => {
   const [currentRecipeDetails, setCurrentRecipeDetails] = useState<any>(null);
   const [isLoadingRecipeDetails, setIsLoadingRecipeDetails] = useState(false);
   const notifiedIngredients = React.useRef<Set<string>>(new Set());
+  const [shakeAnimation] = useState(new Animated.Value(0));
+  const [isShaking, setIsShaking] = useState(false);
+  const [highlightedRecipe, setHighlightedRecipe] = useState<string | null>(null);
 
   const allCategories = Array.from(new Set(ingredients.map(i => i.category))).sort();
   const filteredIngredients = ingredients.filter(ingredient =>
@@ -278,6 +282,35 @@ export const InventoryScreen: React.FC = () => {
     }
   }, [ingredients]);
 
+  // Shake detection effect
+  useEffect(() => {
+    let subscription: any;
+    const startShakeDetection = async () => {
+      await Accelerometer.setUpdateInterval(100); // Set update interval to 100ms
+      subscription = Accelerometer.addListener(({ x, y, z }) => {
+        const acceleration = Math.sqrt(x * x + y * y + z * z);
+        console.log('Acceleration:', acceleration);
+        if (acceleration < 0.9) {
+          console.log('Shaking...');
+          handleShake();
+        }
+      });
+    };
+    startShakeDetection();
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, []);
+
+  const handleShake = () => {
+    // Simulate a roulette effect by highlighting one random recipe
+    const randomIndex = Math.floor(Math.random() * possibleRecipes.length);
+    setHighlightedRecipe(possibleRecipes[randomIndex]);
+    // No timeout, keep highlight until next shake
+  };
+
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
@@ -417,15 +450,29 @@ export const InventoryScreen: React.FC = () => {
                   <Ionicons name="close" size={24} color="#000" />
                 </TouchableOpacity>
               </View>
+              <TouchableOpacity 
+                style={styles.shakeButton}
+                onPress={handleShake}
+              >
+                <Ionicons name="shuffle" size={20} color="#fff" />
+                <Text style={styles.shakeButtonText}>Shake to Randomize</Text>
+              </TouchableOpacity>
               <ScrollView style={styles.modalScrollView}>
                 {possibleRecipes.map((recipe, index) => (
-                  <TouchableOpacity
+                  <Animated.View
                     key={index}
-                    style={styles.recipeItem}
-                    onPress={() => handleRecipeSelect(recipe)}
+                    style={[
+                      styles.recipeItem,
+                      { transform: [{ translateX: shakeAnimation }] },
+                      highlightedRecipe === recipe && styles.highlightedRecipe
+                    ]}
                   >
-                    <Text style={styles.recipeItemText}>{recipe}</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleRecipeSelect(recipe)}
+                    >
+                      <Text style={styles.recipeItemText}>{recipe}</Text>
+                    </TouchableOpacity>
+                  </Animated.View>
                 ))}
               </ScrollView>
             </View>
@@ -433,14 +480,23 @@ export const InventoryScreen: React.FC = () => {
         </Modal>
 
         {/* Recipe Details Modal */}
-        {currentRecipeDetails && (
+        {showRecipeDetailsModal && (
           <RecipeModal
-            recipe={{
-              id: '',
-              title: currentRecipeDetails.title,
-              recipe_desc: currentRecipeDetails.recipe_desc,
-              ingred: currentRecipeDetails.ingred
-            }}
+            recipe={
+              currentRecipeDetails
+                ? {
+                    id: '',
+                    title: currentRecipeDetails.title,
+                    recipe_desc: currentRecipeDetails.recipe_desc,
+                    ingred: currentRecipeDetails.ingred
+                  }
+                : {
+                    id: '',
+                    title: selectedRecipeTitle || 'Loading...',
+                    recipe_desc: '',
+                    ingred: []
+                  }
+            }
             visible={showRecipeDetailsModal}
             onClose={() => {
               if (!isLoadingRecipeDetails) {
@@ -604,5 +660,31 @@ const styles = StyleSheet.create({
   recipeItemText: {
     fontSize: 16,
     color: '#333',
+  },
+  shakeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#A5B68D',
+    padding: 12,
+    margin: 16,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  shakeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  highlightedRecipe: {
+    backgroundColor: '#A5B68D',
   },
 });

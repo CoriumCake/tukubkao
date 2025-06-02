@@ -6,6 +6,8 @@ import PrimaryButton from "../PrimaryButton/PrimaryButton";
 import { Input } from "@rneui/themed";
 import * as Linking from "expo-linking";
 import TextButton from "../TextButton/TextButton";
+import Fonts from "@/constants/Fonts";
+import Colors from "@/constants/Colors";
 
 export default function Forgot() {
   const [email, setEmail] = useState("");
@@ -49,28 +51,47 @@ export default function Forgot() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Reset Password</Text>
-      <Text style={styles.subtitle}>Enter your email to receive reset instructions</Text>
-      <Input
-        containerStyle={styles.verticallySpaced}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="email@address.com"
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <View style={styles.mt20}>
+      {/* Title */}
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Forgot Password</Text>
+        <Text style={styles.subTitle}>Enter your email to receive reset instructions</Text>
+      </View>
+
+      {/* Form */}
+      <View style={styles.formContainer}>
+        <Input
+          label="Email"
+          leftIcon={{ type: "font-awesome", name: "envelope" }}
+          onChangeText={setEmail}
+          value={email}
+          placeholder="Your Email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          inputStyle={{ fontFamily: Fonts.yR, paddingLeft: 8 }}
+          labelStyle={{ fontFamily: Fonts.yR, marginBottom: 6 }}
+          containerStyle={{ marginBottom: 30, paddingHorizontal: 0 }}
+          inputContainerStyle={{
+            borderBottomWidth: 1,
+            borderBottomColor: Colors.text,
+          }}
+        />
+
         <PrimaryButton
-          text="Send Reset Email"
+          text={loading ? "Sending..." : "Send Reset Email"}
           onClick={handleForgotPassword}
           disabled={loading}
         />
       </View>
-      <TextButton 
-        content="" 
-        text="Back to Login" 
-        onClick={() => router.back()} 
-      />
+
+      {/* Bottom Text */}
+      <View style={styles.bottomTextContainer}>
+        <TextButton
+          content=""
+          text="Back to Login"
+          onClick={() => router.back()}
+          textStyle={{ fontFamily: Fonts.yR }}
+        />
+      </View>
     </View>
   );
 }
@@ -78,27 +99,35 @@ export default function Forgot() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#F8F2E6",
+    backgroundColor: Colors.background,
+    paddingHorizontal: 20,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 100,
+    paddingBottom: 290,
+  },
+  titleContainer: {
+    alignItems: "center",
   },
   title: {
+    fontSize: 46,
+    fontFamily: Fonts.yB,
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  subTitle: {
     fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
+    fontFamily: Fonts.yR,
+    color: Colors.text,
+    marginBottom: 40,
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-    textAlign: "center",
+  formContainer: {
+    width: "100%",
+    paddingHorizontal: 10,
+    flexGrow: 0,
+    marginBottom: 5,
   },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: "stretch",
-  },
-  mt20: {
-    marginTop: 20,
+  bottomTextContainer: {
+    alignItems: "center",
   },
 });

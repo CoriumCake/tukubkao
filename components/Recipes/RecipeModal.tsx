@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 interface Recipe {
   id: string;
@@ -35,6 +36,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
   onDelete,
   isLoading = false,
 }) => {
+  const router = useRouter();
+
   if (!recipe) return null;
 
   const renderFormattedText = (text: string, keyPrefix: string) => {
@@ -85,6 +88,20 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
     });
   };
 
+  const handlePost = () => {
+    // Format the recipe content for the post
+    const postContent = `${recipe.title}\n\n${recipe.recipe_desc}`;
+    
+    // Navigate to post creation page with the recipe content
+    router.push({
+      pathname: '/(tabs)/(home)/create',
+      params: { content: postContent }
+    });
+    
+    // Close the recipe modal
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
@@ -122,13 +139,10 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
               <View style={styles.modalFooter}>
                 <TouchableOpacity 
                   style={styles.saveButton}
-                  onPress={() => {
-                    onSave(recipe);
-                    onClose();
-                  }}
+                  onPress={handlePost}
                 >
-                  <Ionicons name="save-outline" size={24} color="#fff" />
-                  <Text style={styles.saveButtonText}>Save Recipe</Text>
+                  <Ionicons name="share-outline" size={24} color="#fff" />
+                  <Text style={styles.saveButtonText}>Share as Post</Text>
                 </TouchableOpacity>
               </View>
             </>

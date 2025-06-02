@@ -13,7 +13,7 @@ import { decode } from 'base64-arraybuffer'
 import { useTranslation } from 'react-i18next'
 
 export default function Account() {
-  
+  // All hooks at the top
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string>('')
@@ -26,11 +26,11 @@ export default function Account() {
   const [savedPosts, setSavedPosts] = useState<any[]>([])
   const screenWidth = Dimensions.get('window').width
   const [bio, setBio] = useState('');
-
-  const router = useRouter();  // สำหรับการใช้งาน expo-router
-  const navigation = useNavigation();  // สำหรับการใช้งาน React Navigation
+  const router = useRouter();
+  const navigation = useNavigation();
   const { t } = useTranslation();
 
+  // All useEffect hooks here
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       console.log('Session data:', data);
@@ -71,11 +71,35 @@ export default function Account() {
       )
       .subscribe();
 
+    // Real-time subscription for saved_posts
+    const savedPostsChannel = supabase
+      .channel('saved_posts_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'saved_posts',
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            // Remove the unbookmarked post from the saved posts list
+            setSavedPosts((prev) => prev.filter((post) => post.id !== payload.old.id));
+          } else {
+            fetchSavedPosts();
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       channel.unsubscribe();
+      savedPostsChannel.unsubscribe();
     };
   }, [session]);
 
+  // Only rendering logic below
   if (!session) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#F8F2E6' }}>
@@ -173,33 +197,67 @@ export default function Account() {
     }
   }
 
-  async function handleSignOut() {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      router.replace('/(auth)/login');
-    } else {
-      Alert.alert('Error signing out:', error.message);
-    }
-  }
-
   async function fetchMyPosts() {
     const { data, error } = await supabase
       .from('posts')
-      .select('*')
+      .select(`
+        id,
+        content,
+        image_url,
+        user_id,
+        profiles (
+          username
+        )
+      `)
       .eq('user_id', session?.user.id)
       .order('created_at', { ascending: false });
-    if (!error && data) setMyPosts(data);
+    if (!error && data) {
+      const formattedPosts = data.map(post => {
+        let username = 'Unknown User';
+        if (post.profiles) {
+          if (Array.isArray(post.profiles)) {
+            username = post.profiles[0]?.username || 'Unknown User';
+          } else if (typeof post.profiles === 'object' && 'username' in post.profiles) {
+            username = (post.profiles as { username?: string }).username || 'Unknown User';
+          }
+        }
+        return {
+          id: post.id,
+          caption: post.content,
+          image: post.image_url,
+          username
+        };
+      });
+      setMyPosts(formattedPosts);
+    }
   }
 
   async function fetchSavedPosts() {
     const { data, error } = await supabase
       .from('saved_posts')
-      .select('post_id, posts(*)')
+      .select('post_id, posts(id, content, image_url, user_id, profiles(username))')
       .eq('user_id', session?.user.id)
       .order('created_at', { ascending: false });
     if (!error && data) {
-      // Extract posts from join
-      setSavedPosts(data.map((item: any) => item.posts));
+      // Format posts to match myPosts structure
+      const formattedSaved = data.map((item: any) => {
+        const post = item.posts;
+        let username = 'Unknown User';
+        if (post.profiles) {
+          if (Array.isArray(post.profiles)) {
+            username = post.profiles[0]?.username || 'Unknown User';
+          } else if (typeof post.profiles === 'object' && 'username' in post.profiles) {
+            username = (post.profiles as { username?: string }).username || 'Unknown User';
+          }
+        }
+        return {
+          id: post.id,
+          image: post.image_url,
+          content: post.content,
+          username
+        };
+      });
+      setSavedPosts(formattedSaved);
     }
   }
 
@@ -253,6 +311,17 @@ export default function Account() {
       await getProfile();
     }
   }
+
+  // Pull-to-refresh handler for the whole profile page
+  const handleRefresh = async () => {
+    setLoading(true);
+    await Promise.all([
+      getProfile(),
+      fetchMyPosts(),
+      fetchSavedPosts()
+    ]);
+    setLoading(false);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -329,7 +398,10 @@ export default function Account() {
       <View style={styles.tabHeader}>
         <TouchableOpacity
           style={styles.tabButton}
-          onPress={() => setSelectedTab('my')}
+          onPress={() => {
+            setSelectedTab('my');
+            fetchMyPosts();
+          }}
         >
           <Ionicons
             name={selectedTab === 'my' ? 'grid' : 'grid-outline'}
@@ -340,7 +412,10 @@ export default function Account() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tabButton}
-          onPress={() => setSelectedTab('saved')}
+          onPress={() => {
+            setSelectedTab('saved');
+            fetchSavedPosts();
+          }}
         >
           <Ionicons
             name={selectedTab === 'saved' ? 'bookmark' : 'bookmark-outline'}
@@ -357,6 +432,8 @@ export default function Account() {
         keyExtractor={item => item.id?.toString()}
         numColumns={3}
         contentContainerStyle={{ paddingBottom: 100 }}
+        onRefresh={handleRefresh}
+        refreshing={loading}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={{ width: screenWidth / 3, aspectRatio: 1, padding: 2 }}
@@ -365,16 +442,16 @@ export default function Account() {
                 pathname: '/(tabs)/(home)/[id]',
                 params: {
                   id: item.id,
-                  username: username,
-                  image: item.image_url || item.image || 'https://via.placeholder.com/150',
-                  caption: item.caption || '',
-                  isOwner: '1' // Pass as string to avoid type error
+                  username: item.username,
+                  image: item.image,
+                  // No caption, only content is used in detail page
+                  isOwner: selectedTab === 'my' ? '1' : undefined
                 }
               });
             }}
           >
             <Image
-              source={{ uri: item.image_url || item.image || 'https://via.placeholder.com/150' }}
+              source={{ uri: item.image || 'https://via.placeholder.com/150' }}
               style={{ width: '100%', height: '100%', borderRadius: 8, backgroundColor: '#eee' }}
               resizeMode="cover"
             />

@@ -90,6 +90,17 @@ export default function Login() {
       {/* Bottom Text */}
       <View style={styles.bottomTextContainer}>
         <TextButton
+          content=""
+          text="Forgot Password?"
+          onClick={() => router.push("/(auth)/forgot")}
+          disabled={loading}
+          textStyle={{ 
+            fontFamily: Fonts.yR,
+            fontSize: 12,
+            color: '#666666'
+          }}
+        />
+        <TextButton
           content="Don't have an account?"
           text="Sign Up"
           onClick={() => router.push("/(auth)/signup")}
@@ -136,5 +147,6 @@ const styles = StyleSheet.create({
   },
   bottomTextContainer: {
     alignItems: "center",
+    gap: 10,
   },
 });
