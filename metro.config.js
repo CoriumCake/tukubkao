@@ -9,4 +9,7 @@ config.resolver.alias = {
   '@': path.resolve(__dirname),
 };
 
+// Add asset configuration
+config.resolver.assetExts.push('ttf');
+
 module.exports = withNativeWind(config, { input: './global.css' });

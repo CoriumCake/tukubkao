@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, ImageSourcePropType } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, ImageSourcePropType, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,16 +7,15 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 
 export default function PostDetail() {
-  const { id, username, image, caption } = useLocalSearchParams();
+  const { id, username, image, caption, isOwner } = useLocalSearchParams();
   const router = useRouter();
   const { session } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Convert image string to proper ImageSourcePropType
   const imageSource: ImageSourcePropType = typeof image === 'string' 
     ? { uri: image }
-    : require('@/assets/images/Icon_User.png'); // Fallback image
+    : require('@/assets/images/Icon_User.png');
 
   // Check if post is already saved
   useEffect(() => {
@@ -55,6 +54,22 @@ export default function PostDetail() {
     setLoading(false);
   };
 
+  // Handler for deleting post
+  const handleDelete = async () => {
+    Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        await supabase.from('posts').delete().eq('id', id);
+        router.back();
+      }}
+    ]);
+  };
+
+  // Handler for editing post (placeholder)
+  const handleEdit = () => {
+    Alert.alert('Edit Post', 'Edit functionality coming soon!');
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -62,13 +77,25 @@ export default function PostDetail() {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Post</Text>
-        <TouchableOpacity onPress={handleToggleSave} disabled={loading} style={{ marginLeft: 'auto' }}>
-          <Ionicons
-            name={isSaved ? 'bookmark' : 'bookmark-outline'}
-            size={24}
-            color={isSaved ? '#007AFF' : '#000'}
-          />
-        </TouchableOpacity>
+        {isOwner === '1' && (
+          <>
+            <TouchableOpacity onPress={handleEdit} style={{ marginLeft: 12 }}>
+              <Ionicons name="create-outline" size={24} color="#A5B68D" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleDelete} style={{ marginLeft: 12 }}>
+              <Ionicons name="trash-outline" size={24} color="#E22019" />
+            </TouchableOpacity>
+          </>
+        )}
+        {isOwner === '1' ? null : (
+          <TouchableOpacity onPress={handleToggleSave} disabled={loading} style={{ marginLeft: 'auto' }}>
+            <Ionicons
+              name={isSaved ? 'bookmark' : 'bookmark-outline'}
+              size={24}
+              color={isSaved ? '#4CAF50' : '#000'}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       
       <ScrollView style={styles.content}>

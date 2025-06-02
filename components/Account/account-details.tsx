@@ -12,17 +12,25 @@ export default function AccountDetails() {
   const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [password, setPassword] = useState(""); // for password update
+  const [bio, setBio] = useState('');
 
   // Fetch profile data
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, avatar_url')
+      .select('username, avatar_url, bio')
       .eq('id', userId)
       .single();
     if (!error && data) {
       setUsername(data.username || '');
-      setAvatarUrl(data.avatar_url || null);
+      setBio(data.bio || '');
+      if (data.avatar_url && !data.avatar_url.startsWith('http')) {
+        // Get public URL from user-avatar bucket
+        const { data: publicUrlData } = supabase.storage.from('user-avatar').getPublicUrl(data.avatar_url);
+        setAvatarUrl(publicUrlData?.publicUrl || null);
+      } else {
+        setAvatarUrl(data.avatar_url || null);
+      }
     }
   };
 
@@ -42,17 +50,19 @@ export default function AccountDetails() {
     let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', allowsEditing: true, quality: 1 });
     if (!result.canceled) {
       const file = result.assets[0];
+      // Show the selected image immediately
+      setAvatarUrl(file.uri);
       const fileExt = file.uri.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const fileName = `${userId}_${Date.now()}.${fileExt}`;
+      const filePath = `user-avatar/${fileName}`;
       const response = await fetch(file.uri);
       const blob = await response.blob();
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, blob, { upsert: true });
+      // Upload to Supabase Storage (user-avatar bucket)
+      const { error: uploadError } = await supabase.storage.from('user-avatar').upload(filePath, blob, { upsert: true });
       if (uploadError) return Alert.alert('Upload failed', uploadError.message);
 
-      // Update profile with new avatar path (use user id)
+      // Update profile with new avatar path
       if (!userId) return Alert.alert('No user session');
       const { error: updateError } = await supabase
         .from('profiles')
@@ -61,22 +71,19 @@ export default function AccountDetails() {
       if (updateError) return Alert.alert('Update failed', updateError.message);
 
       // Get the public URL for the new avatar
-      let newAvatarUrl = filePath;
-      if (!filePath.startsWith('http')) {
-        newAvatarUrl = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
-      }
-      setAvatarUrl(newAvatarUrl + '?t=' + Date.now());
+      const { data: publicUrlData } = supabase.storage.from('user-avatar').getPublicUrl(filePath);
+      setAvatarUrl((publicUrlData?.publicUrl || '') + `?t=${Date.now()}`);
 
       Alert.alert('Success', 'Avatar updated!');
     }
   };
 
-  // Update username
+  // Update username and bio together
   const updateProfile = async () => {
     if (!userId) return Alert.alert('No user session');
     const { error } = await supabase
       .from('profiles')
-      .update({ username })
+      .update({ username, bio })
       .eq('id', userId);
     if (error) return Alert.alert('Update failed', error.message);
     Alert.alert('Success', 'Profile updated!');
@@ -98,9 +105,6 @@ export default function AccountDetails() {
 
   // Get public avatar URL
   let avatarDisplayUrl = avatarUrl;
-  if (avatarUrl && !avatarUrl.startsWith('http')) {
-    avatarDisplayUrl = supabase.storage.from('avatars').getPublicUrl(avatarUrl).data.publicUrl;
-  }
 
   return (
     <View style={styles.container}>
@@ -125,18 +129,17 @@ export default function AccountDetails() {
         <TextInput style={styles.input} value={username} onChangeText={setUsername} />
       </View>
       <View style={styles.row}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput style={styles.input} value={email} onChangeText={setEmail} onBlur={updateEmail} />
+        <Text style={styles.label}>Bio</Text>
+        <TextInput
+          style={styles.input}
+          value={bio}
+          onChangeText={setBio}
+          placeholder="Tell us about yourself..."
+          maxLength={200}
+        />
       </View>
       <TouchableOpacity onPress={updateProfile} style={styles.saveBtn}>
         <Text style={{ color: '#fff' }}>Save Profile</Text>
-      </TouchableOpacity>
-      <View style={styles.row}>
-        <Text style={styles.label}>Password</Text>
-        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
-      </View>
-      <TouchableOpacity onPress={updatePassword} style={styles.saveBtn}>
-        <Text style={{ color: '#fff' }}>Change Password</Text>
       </TouchableOpacity>
     </View>
   );

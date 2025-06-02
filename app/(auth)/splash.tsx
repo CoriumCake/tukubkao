@@ -1,5 +1,5 @@
 import React from 'react';
-import Splash from '@/components/Account/Splash';
+import Splash from '../../components/Splash';
 
 export default function SplashScreen() {
   return (

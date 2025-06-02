@@ -1,53 +1,40 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { useColorScheme } from 'react-native';
+import { AuthProvider } from '@/lib/auth';
+import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-import "../global.css"
-import { AuthProvider } from '@/lib/auth';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
+// Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    'YsabeauOffice-Regular': require('@/assets/fonts/YsabeauOffice-Regular.ttf'),
-    'YsabeauOffice-Medium': require('@/assets/fonts/YsabeauOffice-Medium.ttf'),
-    'YsabeauOffice-SemiBold': require('@/assets/fonts/YsabeauOffice-SemiBold.ttf'),
-    'YsabeauOffice-Bold': require('@/assets/fonts/YsabeauOffice-Bold.ttf'),
+  const [fontsLoaded] = useFonts({
+    'YsabeauOffice': require('../assets/fonts/YsabeauOffice-Regular.ttf'),
   });
 
   useEffect(() => {
-    if (loaded) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [fontsLoaded]);
 
-  if (!loaded) {
+  if (!fontsLoaded) {
     return null;
   }
 
-  return <RootLayoutNav />;
-}
-
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-  
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Stack>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
-        </Stack>
-      </ThemeProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <StatusBar style="auto" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

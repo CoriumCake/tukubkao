@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
-import PrimaryButton from "../PrimaryButton/PrimaryButton";
+import PrimaryButton from "./PrimaryButton/PrimaryButton";
 import { router } from "expo-router";
 import { useFonts } from "expo-font";
 import { supabase } from "@/lib/supabase";
 
 export default function Splash() {
   const [fontsLoaded] = useFonts({
-    'YsabeauOffice': require('../../assets/fonts/YsabeauOffice-Regular.ttf'),
+    'YsabeauOffice': require('../assets/fonts/YsabeauOffice-Regular.ttf'),
   });
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function Splash() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('../../assets/images/SmallLogo.png')}
+          source={require('../assets/images/SmallLogo.png')}
           style={{ width: 45, height: 45, marginRight: 8 }}
           resizeMode="contain"
         />
@@ -37,7 +37,7 @@ export default function Splash() {
       {/* Logo and Title Section */}
       <View style={styles.titleContainer}>
         <Image
-          source={require('../../assets/images/splash-pic.png')}
+          source={require('../assets/images/splash-pic.png')}
           style={styles.image}
         />
         <Text style={styles.title}>TuKubKao</Text>

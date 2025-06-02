@@ -26,8 +26,6 @@ export default function Account() {
   const [savedPosts, setSavedPosts] = useState<any[]>([])
   const screenWidth = Dimensions.get('window').width
   const [bio, setBio] = useState('');
-  const [editingBio, setEditingBio] = useState(false);
-  const [bioInput, setBioInput] = useState('');
 
   const router = useRouter();  // สำหรับการใช้งาน expo-router
   const navigation = useNavigation();  // สำหรับการใช้งาน React Navigation
@@ -52,6 +50,30 @@ export default function Account() {
       fetchMyPosts();
       fetchSavedPosts();
     }
+  }, [session]);
+
+  useEffect(() => {
+    if (!session?.user) return;
+
+    const channel = supabase
+      .channel('profile_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${session.user.id}`,
+        },
+        (payload) => {
+          getProfile();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, [session]);
 
   if (!session) {
@@ -181,35 +203,6 @@ export default function Account() {
     }
   }
 
-  // Bio update logic
-  async function handleSaveBio() {
-    if (!session?.user) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ bio: bioInput })
-      .eq('id', session.user.id);
-    if (!error) {
-      setBio(bioInput);
-      setEditingBio(false);
-    } else {
-      Alert.alert('Error updating bio', error.message);
-    }
-  }
-
-  async function handleDeleteBio() {
-    if (!session?.user) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ bio: '' })
-      .eq('id', session.user.id);
-    if (!error) {
-      setBio('');
-      setEditingBio(false);
-    } else {
-      Alert.alert('Error deleting bio', error.message);
-    }
-  }
-
   // Avatar picker logic
   async function handlePickAvatar() {
     // Ask for permission
@@ -286,12 +279,10 @@ export default function Account() {
 
       {/* Profile Image and Stats Container */}
       <View style={styles.profileContainer}>
-        <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-          <Image
-            source={{ uri: avatarUrl || 'https://mosrzootwtqzcuqgczwb.supabase.co/storage/v1/object/public/user-avatar/a59b94c1-9081-4744-acbe-07175a504e9b/43073.image2.jpg' }}
-            style={styles.profileImage}
-          />
-        </TouchableOpacity>
+        <Image
+          source={{ uri: avatarUrl || 'https://mosrzootwtqzcuqgczwb.supabase.co/storage/v1/object/public/user-avatar/a59b94c1-9081-4744-acbe-07175a504e9b/43073.image2.jpg' }}
+          style={styles.profileImage}
+        />
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statCount}>{postsCount}</Text>
@@ -309,36 +300,30 @@ export default function Account() {
       </View>
 
       {/* Bio Section */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, marginLeft: 2 }}>
-        {editingBio ? (
-          <>
-            <TextInput
-              style={[styles.bio, { flex: 1, borderBottomWidth: 1, borderColor: '#A5B68D', padding: 0, marginRight: 8 }]}
-              value={bioInput}
-              onChangeText={setBioInput}
-              maxLength={200}
-              multiline
-              autoFocus
-            />
-            <TouchableOpacity onPress={handleSaveBio} style={{ marginRight: 8 }}>
-              <Ionicons name="checkmark" size={22} color="#A5B68D" />
-            </TouchableOpacity>
-          </>
-        ) : bio ? (
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => { setEditingBio(true); setBioInput(bio); }}>
-            <Text style={[styles.bio]} numberOfLines={3} ellipsizeMode="tail">
-              {bio}
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => { setEditingBio(true); setBioInput(''); }}>
-            <Text style={[styles.bio, { color: '#bbb' }]}>{t('edit_me')}</Text>
-          </TouchableOpacity>
-        )}
+      <View style={{ marginBottom: 10, marginLeft: 2 }}>
+        <Text style={[styles.bio]} numberOfLines={3} ellipsizeMode="tail">
+          {bio ? bio : t('edit_me')}
+        </Text>
       </View>
 
       <View style={styles.actionButtons}>
       </View>
+
+      {/* Edit Profile Button */}
+      <TouchableOpacity
+        style={{
+          backgroundColor: '#A5B68D',
+          borderRadius: 8,
+          paddingVertical: 14,
+          alignItems: 'center',
+          marginBottom: 16,
+          marginHorizontal: 0,
+          width: '100%',
+        }}
+        onPress={() => router.push('/account-details')}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Edit Profile</Text>
+      </TouchableOpacity>
 
       {/* Tab Header */}
       <View style={styles.tabHeader}>
@@ -376,8 +361,16 @@ export default function Account() {
           <TouchableOpacity
             style={{ width: screenWidth / 3, aspectRatio: 1, padding: 2 }}
             onPress={() => {
-              // Optionally navigate to post detail
-              // router.push(`/post/${item.id}`)
+              router.push({
+                pathname: '/(tabs)/(home)/[id]',
+                params: {
+                  id: item.id,
+                  username: username,
+                  image: item.image_url || item.image || 'https://via.placeholder.com/150',
+                  caption: item.caption || '',
+                  isOwner: '1' // Pass as string to avoid type error
+                }
+              });
             }}
           >
             <Image
@@ -396,7 +389,7 @@ export default function Account() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F2E6',
+    backgroundColor: '#F2F2F2',
     paddingHorizontal: 12,
     paddingTop: 8,
   },

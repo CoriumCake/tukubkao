@@ -1,5 +1,5 @@
 import React from 'react';
-import Signup from '@/components/Account/Signup';
+import Signup from '../../components/Auth/Signup';
 
 export default function SignupScreen() {
   return (

@@ -9,6 +9,8 @@ import SearchBar from '@/components/SearchBar/SearchBar';
 import { AddItemModal } from '@/components/Inventory/AddItemModal';
 import IngredientActions from '@/components/Inventory/IngredientActions';
 import { RecipeModal } from '@/components/Recipes/RecipeModal';
+import { requestNotificationPermissions, scheduleNotification } from '@/lib/notifications';
+import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
 interface Ingredient {
   name: string;
@@ -76,6 +78,7 @@ export const InventoryScreen: React.FC = () => {
   const [showRecipeDetailsModal, setShowRecipeDetailsModal] = useState(false);
   const [currentRecipeDetails, setCurrentRecipeDetails] = useState<any>(null);
   const [isLoadingRecipeDetails, setIsLoadingRecipeDetails] = useState(false);
+  const notifiedIngredients = React.useRef<Set<string>>(new Set());
 
   const allCategories = Array.from(new Set(ingredients.map(i => i.category))).sort();
   const filteredIngredients = ingredients.filter(ingredient =>
@@ -248,6 +251,32 @@ export const InventoryScreen: React.FC = () => {
       Alert.alert('Error', 'Failed to save recipe. Please try again.');
     }
   };
+
+  useEffect(() => {
+    async function checkExpiringIngredients() {
+      await requestNotificationPermissions();
+      const now = new Date();
+      ingredients.forEach((ingredient) => {
+        const expDate = new Date(ingredient.exp);
+        const diffTime = expDate.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays <= 3) {
+          const key = `${ingredient.name}-${ingredient.exp}`;
+          if (!notifiedIngredients.current.has(key)) {
+            scheduleNotification(
+              'Ingredient Expiring Soon',
+              `${ingredient.name} will expire in ${diffDays} day${diffDays === 1 ? '' : 's'}.`,
+              { type: SchedulableTriggerInputTypes.DATE, date: new Date(Date.now() + 1000) }
+            );
+            notifiedIngredients.current.add(key);
+          }
+        }
+      });
+    }
+    if (ingredients.length > 0) {
+      checkExpiringIngredients();
+    }
+  }, [ingredients]);
 
   if (loading && !refreshing) {
     return (
